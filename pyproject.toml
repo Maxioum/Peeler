@@ -1,0 +1,53 @@
+[project]
+name = "peeler"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = {file = "LICENSE"}
+authors = [
+    { name = "Maxime Letellier", email = "maxime.eliot.letellier@gmail.com" }
+]
+dynamic = ["version"]
+dependencies = [
+    "jsonschema>=4.23.0",
+    "pyproject-metadata>=0.9.0",
+    "rich>=13.9.4",
+    "tomlkit>=0.13.2",
+    "typer>=0.15.1",
+    "uv>=0.5.11",
+    "validate-pyproject>=0.23",
+]
+
+[project.scripts]
+peeler = "peeler.cli:app"
+
+
+[tool.uv.workspace]
+members = ["schema-convertor"]
+
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+    "pytest-cov>=6.0.0",
+]
+
+[tool.hatch.version]
+path = "version.txt"
+
+[tool.hatch.build]
+include = ["peeler"]
+exclude = ["tests"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+addopts = "-lsv"
+testpaths = ["tests"]
