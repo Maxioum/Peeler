@@ -366,6 +366,6 @@ $RECYCLE.BIN/
 
 # project specific gitignore:
 
-!strainer/manifest
-!strainer/wheels
-!tests/strainer/manifest/
+!peeler/manifest
+!peeler/wheels
+!tests/peeler/manifest/

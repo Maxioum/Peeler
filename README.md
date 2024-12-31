@@ -1,4 +1,4 @@
-# blender-stainer
+# Peeler
 
 ## Getting Started
 
@@ -8,7 +8,7 @@ local machine for development and testing purposes.
 Clone this repository in an empty directory
 
 ```bash
-git clone https://github.com/Maxioum/Strainer.git
+git clone https://github.com/Maxioum/peeler.git
 ```
 
 ### Project Management
