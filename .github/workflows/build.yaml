@@ -1,0 +1,33 @@
+name: Build Python Package
+
+on: [push]
+
+env:
+  UV_SYSTEM_PYTHON: 1
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup UV
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - name: Setup Python
+        run: uv python install
+
+      - name: Install the project
+        run: uv sync --all-extras --dev
+
+      - name: Build the Package
+        run: uv build -o ./build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          path: ./build
+
+      - name: Minimize uv cache
+        run: uv cache prune --ci
