@@ -1,4 +1,4 @@
-name: Build Python Package
+name: Test Python Package
 
 on: [push]
 
@@ -6,7 +6,7 @@ env:
   UV_SYSTEM_PYTHON: 1
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
