@@ -1,0 +1,8 @@
+[project]
+name = "test_pyproject_no_manifest_table"
+readme = "README.md"
+version = "1.0.0"
+
+
+[tool.peeler]
+download_wheels = true

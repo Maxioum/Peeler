@@ -1,0 +1,5 @@
+[project]
+name = "test_pyproject_with_empty_peeler_table"
+version = "1.0.0"
+
+[tool.peeler]
