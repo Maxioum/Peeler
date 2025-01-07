@@ -1,0 +1,28 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "download_wheels": {
+            "type": "boolean",
+            "description": "whether to download wheels from pyproject dependencies",
+            "default": false
+        },
+        "overwrite": {
+            "type": "boolean",
+            "description": "whether to overwrite properties in already existing blender manifest",
+            "default": false
+        },
+        "manifest": {
+            "type": "object",
+            "description": "manifest values",
+            "required": [
+                "id",
+                "tagline",
+                "maintainer",
+                "blender_version_min",
+                "license"
+              ]
+        }
+    }
+
+}
