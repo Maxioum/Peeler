@@ -8,9 +8,6 @@ from tomlkit import TOMLDocument
 
 TEST_DATA_DIR = Path(__file__).parent / "data"
 
-blender_manifest_schema_path = DATA_DIR / "blender_manifest_schema.json"
-peeler_json_schema_path = DATA_DIR / "peeler_pyproject_schema.json"
-
 
 @fixture
 def json_schema(request: FixtureRequest) -> Dict[str, Any]:
