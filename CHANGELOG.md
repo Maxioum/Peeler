@@ -8,3 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## \[0.0.1\]
 
 Add a version command [#1](https://github.com/Maxioum/Peeler/pull/1)
+
+## \[0.1.0\]
+
+Add the manifest command to generate the blender_manifest.toml [#1](https://github.com/Maxioum/Peeler/pull/3)
+
+## \[0.1.1\]
+
+Update readme and contributing
