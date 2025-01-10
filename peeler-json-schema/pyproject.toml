@@ -1,0 +1,14 @@
+[project]
+name = "peeler-json-schema"
+description = "Create peeler tool table json schema"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "Maxime Letellier", email = "maxime.eliot.letellier@gmail.com" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = {file = "LICENSE"}
+version = "1.0.0"
