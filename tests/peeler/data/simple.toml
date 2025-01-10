@@ -1,0 +1,7 @@
+string = "value"
+boolean = false
+array = ["str1", "str2"]
+
+[object]
+string2 = "value2"
+boolean2 = true

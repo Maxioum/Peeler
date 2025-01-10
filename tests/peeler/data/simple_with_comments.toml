@@ -1,0 +1,23 @@
+# first
+string = "value"
+boolean = false # inline 1
+array = [
+    "str1", # in array
+    "str2"
+]
+# middle
+[object]
+# under
+string2 = "value2"
+boolean2 = true  # inline 2
+array_o = [
+    "o", # in array 2
+    {"prop" ="prop_value"} # object_in_array
+]
+
+[[array2]] # inline 3
+key1 = "v1"
+
+[[array2]]
+key2 = "v2" # inline 4
+# end
