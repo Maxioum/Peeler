@@ -1,91 +1,64 @@
 # Peeler
 
-## Getting Started
 
-These instructions will get you a copy of the project on your
-local machine for development and testing purposes.
+>A tool to use a `pyproject.toml` file instead (or alongside) of the `blender_manifest.toml` required for building blender add-ons since Blender 4.2 .
 
-Clone this repository in an empty directory
+To install run:
 
 ```bash
-git clone https://github.com/Maxioum/peeler.git
+pip install peeler
 ```
 
-### Project Management
+# Feature
 
-This project is using [uv](https://docs.astral.sh/uv/) to manage dependencies
-and to build the package.
+Create a `blender_manifest.toml` from values in your `pyproject.toml`
 
-See pyproject.toml files for the list of dependencies.
 
-[How to install uv](https://docs.astral.sh/uv/getting-started/installation/)
+```toml
+# pyproject.toml
 
-### Virtual Environments
+[project]
+name = "my_awesome_addon"
+version = "1.0.0"
+```
 
-You may create a virtual environnement managed by uv with
+Run peeler:
 
 ```bash
-uv venv
+peeler manifest /path/to/your/pyproject.toml /path/to/blender_manifest.toml
 ```
 
-make sure to activate the environnement
+Will create (or update) the `blender_manifest.toml`:
 
-### Testing
+```toml
+# blender_manifest.toml
 
-```bash
-uv run pytest .
+name = "my_awesome_addon"
+version = "1.0.0"
 ```
 
-## Coding style enforcement
+Some meta-data are specific to Blender, such as `blender_version_min`, you can specify theses in your `pyproject.toml` file under the `[tool.peeler.manifest]` table:
 
-### Pre-commit
+```toml
+# pyproject.toml
+[project]
+name = "my_awesome_addon"
+version = "1.0.0"
 
-[Pre-commit](https://pre-commit.com/) framework manages and maintains multi-language
-pre-commit hooks.
-
-To install hooks the first time, run
-
-```bash
-  uvx pre-commit install
+[tool.peeler.manifest]
+blender_version_min = "4.2.0"
 ```
 
-After this step all your future commits will need to satisfy coding style rules.
+Will create:
 
-### Ruff
+```toml
+# blender_manifest.toml
 
-[Ruff](https://docs.astral.sh/ruff/) is a Python linter and code formatter.
-
-To manually run Ruff on your code
-
-```bash
-uvx ruff check
+name = "my_awesome_addon"
+version = "1.0.0"
+blender_version_min = "4.2.0"
 ```
 
-```bash
-uvx ruff format
-```
-
-### Mypy
-
-[Mypy](https://mypy-lang.org/) is a static type checker for Python.
-
-These packages uses as much as possible python static typing feature and mypy helps
-us to check our typing inconsistencies.
-
-To manually run Mypy on your code
-
-```bash
-uv run mypy .
-```
-
-## Contributing
-
-Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of
-conduct, and the process for submitting Pull Requests.
-
-## Versioning
-
-This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Authors
 
