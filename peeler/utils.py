@@ -1,7 +1,4 @@
-import shutil
 from pathlib import Path
-from subprocess import run
-from typing import Iterable
 
 import typer
 from click import ClickException
