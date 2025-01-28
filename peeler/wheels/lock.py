@@ -23,10 +23,9 @@ def _generate_lock_file(pyproject_file: Path) -> Generator[Path, None, None]:
     run(
         [
             uv_bin,
-            "--isolated",
+            "--no-config",
             "--directory",
             pyproject_file.parent,
-            "--no-config",
             "--no-python-downloads",
             "lock",
             "--no-build",
