@@ -1,28 +1,21 @@
-import re
 from pathlib import Path
-from subprocess import run
 from typing import List
 
 from tomlkit.toml_file import TOMLFile
 import typer
 from click import format_filename
 from click.exceptions import ClickException
-from packaging.version import Version
 
-from peeler.uv_utils import find_uv_bin
+from peeler.uv_utils import check_uv_version
 
 from ..utils import find_pyproject_file
 from ..wheels.download import download_wheels
 from ..wheels.lock import get_wheels_url
 
-version_regex = r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?"
-
 PYPROJECT_FILENAME = "pyproject.toml"
 
 # https://docs.blender.org/manual/en/dev/advanced/extensions/python_wheels.html
 WHEELS_DIRECTORY = "wheels"
-
-_MIN_UV_VERSION = Version("0.5.17")
 
 
 def _resolve_wheels_dir(
@@ -31,6 +24,40 @@ def _resolve_wheels_dir(
     *,
     allow_non_default_name: bool = False,
 ) -> Path:
+    """Return a complete path of the wheels directory.
+
+    :param wheels_directory: the original path given by the user
+    :param blender_manifest_file: the path the blender_manifest.toml file, the wheels directory should be next to this file.
+    :param allow_non_default_name: whether to allow the directory to be named other than `wheels`, defaults to False, see `https://docs.blender.org/manual/en/dev/advanced/extensions/python_wheels.html`
+    :raises ClickException: if allow_non_default_name is False and the given path is not named `wheels`
+    :raises ClickException: if the given path is not None and not a directory
+    :return: The valid path
+
+    >>> _resolve_wheels_dir(
+    ...     None,
+    ...     Path("/path/to/manifest/blender_manifest.toml"),
+    ...     allow_non_default_name=False,
+    ... )
+    Path("/path/to/manifest/wheels")
+    >>> _resolve_wheels_dir(
+    ...     Path("/path/to/manifest/wheels/"),
+    ...     Path("/path/to/manifest/blender_manifest.toml"),
+    ...     allow_non_default_name=False,
+    ... )
+    Path("/path/to/manifest/wheels/")
+    >>> _resolve_wheels_dir(
+    ...     Path("/path/to/wheels/"),
+    ...     Path("/path/to/other_dir/blender_manifest.toml"),
+    ...     allow_non_default_name=True,
+    ... )
+    Path("/path/to/wheels/")
+    >>> _resolve_wheels_dir(
+    ...     Path("/path/to/wheels/"),
+    ...     Path("/path/to/other_dir/blender_manifest.toml"),
+    ...     allow_non_default_name=False,
+    ... )
+    ClickException: The wheels directory "/path/to/wheels" Should be next to the blender_manifest.toml file ...
+    """
     if wheels_directory is None:
         wheels_directory = blender_manifest_file.parent / WHEELS_DIRECTORY
 
@@ -53,7 +80,7 @@ See: `https://docs.blender.org/manual/en/dev/advanced/extensions/python_wheels.h
 
     if not wheels_directory.parent == blender_manifest_file.parent:
         msg = f"""The wheels directory {format_filename(wheels_directory)}
-Should be next to the pyproject file {format_filename(blender_manifest_file)}
+Should be next to the blender_manifest.toml file {format_filename(blender_manifest_file)}
 See: `https://docs.blender.org/manual/en/dev/advanced/extensions/python_wheels.html`
         """
         if allow_non_default_name:
@@ -62,32 +89,6 @@ See: `https://docs.blender.org/manual/en/dev/advanced/extensions/python_wheels.h
             raise ClickException(msg)
 
     return wheels_directory
-
-
-def _check_uv_version() -> None:
-    uv_bin = find_uv_bin()
-
-    result = run([uv_bin, "version"], capture_output=True, text=True, check=True)
-    output = result.stdout.strip()
-    match = re.search(version_regex, output)
-
-    if not match:
-        raise ClickException(
-            f"""Error when checking uv version
-To use {peeler.__name__} wheels feature uv must be at least {_MIN_UV_VERSION}
-Run `uv self update` to update uv"""
-        )
-
-    uv_version = Version(match.group(0))
-
-    if uv_version < _MIN_UV_VERSION:
-        import peeler
-
-        raise ClickException(
-            f"""uv version is {uv_version}
-To use {peeler.__name__} wheels feature uv must be at least {_MIN_UV_VERSION}
-Run `uv self update` to update uv"""
-        )
 
 
 def _normalize(path: Path, dir: Path) -> str:
@@ -129,7 +130,7 @@ def wheels_command(
     :param wheels_directory: the directory to download wheels into.
     """
 
-    _check_uv_version()
+    check_uv_version()
 
     pyproject_file = find_pyproject_file(pyproject_file, allow_non_default_name=False)
     wheels_directory = _resolve_wheels_dir(
