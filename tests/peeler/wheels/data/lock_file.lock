@@ -1,0 +1,23 @@
+version = 1
+requires-python = ">=3.11"
+
+[[package]]
+name = "package1"
+version = "24.3.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "sdist_url_package1", hash = "sha256:8f5c07333d543103541ba7be0e2ce16eeee8130cb0b3f9238ab904ce1e85baff", size = 805984 }
+wheels = [
+    { url = "wheels_url_package1", hash = "sha256:ac96cd038792094f438ad1f6ff80837353805ac950cd2aa0e0625ef19850c308", size = 63397 },
+]
+
+
+
+[[package]]
+name = "package2"
+version = "1.3.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "sdist_url_package2", hash = "sha256:8f5c07333d543103541ba7be0e2ce16eeee8130cb0b3f9238ab904ce1e85baff", size = 805984 }
+wheels = [
+    { url = "wheels_url_package2_1", hash = "sha256:ac96cd038792094f438ad1f6ff80837353805ac950cd2aa0e0625ef19850c308", size = 63397 },
+    { url = "wheels_url_package2_2", hash = "sha256:ac96cd038792094f408ad1f6ff80837353805ac950cd2aa0e0625ef19850c308", size = 63397 },
+]
