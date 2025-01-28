@@ -369,3 +369,4 @@ $RECYCLE.BIN/
 !peeler/manifest
 !peeler/wheels
 !tests/peeler/manifest/
+!tests/peeler/wheels/
