@@ -3,10 +3,6 @@ name = "test_pyproject"
 version = "1.0.0"
 
 
-[tool.peeler]
-overwrite = true
-
-
 [tool.peeler.manifest]
 blender_version_min = "4.2.0"
 id = "test_pyproject"
