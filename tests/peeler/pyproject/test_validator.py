@@ -1,5 +1,4 @@
 import pytest
-
 from validate_pyproject.error_reporting import ValidationError
 
 from peeler.pyproject.validator import Validator
@@ -8,7 +7,7 @@ from peeler.pyproject.validator import Validator
 @pytest.mark.parametrize(
     "validator",
     [
-        "pyproject.toml",
+        "pyproject_minimal.toml",
     ],
     indirect=True,
 )
