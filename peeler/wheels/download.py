@@ -3,6 +3,7 @@ from pathlib import Path
 from subprocess import run
 from typing import Dict, List, Tuple
 
+from click import ClickException
 from typer import progressbar
 from wheel_filename import parse_wheel_filename
 
@@ -32,6 +33,7 @@ def _download_from_url(destination_directory: Path, url: str) -> Path:
         uv_bin,
         "--isolated",
         "tool",
+        "run",
         "--no-config",
         "--no-python-downloads",
         "--no-build",
@@ -56,12 +58,13 @@ def _download_from_url(destination_directory: Path, url: str) -> Path:
         cmd.extend(["--python-version", python_version])
 
     cmd.append(url)
-    run(cmd)
+
+    result = run(cmd, capture_output=True, text=True)
+    stderr = result.stderr
 
     if not path.is_file():
-        raise RuntimeError(
-            f"Error when downloading wheel for {wheel_info.project} on {platform} with {' '.join(cmd)}"
-        )
+        msg = f"Error when downloading wheel for package `{wheel_info.project}` for platform `{platform}`"
+        raise ClickException(f"{msg}{stderr}")
 
     return path
 
