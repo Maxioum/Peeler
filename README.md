@@ -9,11 +9,12 @@ To install run:
 pip install peeler
 ```
 
-# Feature
+# Features
 
-Create a `blender_manifest.toml` from values in your `pyproject.toml`
+## Manifest
 
-## How to
+Create a `blender_manifest.toml` from fields in a `pyproject.toml`
+
 
 - Make sure to have a `pyproject.toml` with basic field values:
 
@@ -39,7 +40,7 @@ blender_version_min = "4.2.0"
 id = "my_awesome_addon"
 license = ["SPDX:0BSD"]
 maintainer = "John Smith"
-tagline = "A short description"
+tagline = "My Add-on is awesome"
 ```
 
 - Run peeler to create (or update) `blender_manifest.toml`:
@@ -60,11 +61,14 @@ blender_version_min = "4.2.0"
 id = "my_awesome_addon"
 license = ["SPDX:0BSD"]
 maintainer = "John Smith"
-tagline = "A short description"
+tagline = "My Add-on is awesome"
 ```
 
+The manifest is filled with values from the pyproject `[project]`, `[tool.peeler.manifest]` tables and default values.
 
-## Authors
+To get a full list of values required or optional in a `blender_manifest.toml` visit https://docs.blender.org/manual/en/latest/advanced/extensions/getting_started.html#manifest
+
+# Authors
 
 <!-- markdownlint-disable MD013 -->
 
