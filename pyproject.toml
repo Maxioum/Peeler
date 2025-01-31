@@ -1,16 +1,24 @@
 [project]
 name = "peeler"
-description = "Add your description here"
+description = "A tool to use a `pyproject.toml` instead of a `blender_manifest.toml` to build Blender add-ons"
 readme = "README.md"
 requires-python = ">=3.11"
 classifiers = [
-    "Programming Language :: Python :: 3",
+    "Intended Audience :: Developers",
+    "Topic :: Multimedia :: Graphics :: 3D Modeling",
+    "Topic :: Multimedia :: Graphics :: 3D Rendering",
     "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Development Status :: 2 - Pre-Alpha"
 ]
 license = {file = "LICENSE"}
 authors = [
     { name = "Maxime Letellier", email = "maxime.eliot.letellier@gmail.com" }
 ]
+keywords = ["blender", "add-on"]
+version = "0.0.1"
+
 dependencies = [
     "jsonschema>=4.23.0",
     "pyproject-metadata>=0.9.0",
@@ -19,7 +27,13 @@ dependencies = [
     "typer>=0.15.1",
     "validate-pyproject>=0.23",
 ]
-version = "0.0.1"
+
+
+[project.urls]
+Homepage = "https://github.com/Maxioum/Peeler"
+Repository = "https://github.com/Maxioum/Peeler.git"
+Changelog = "https://github.com/Maxioum/Peeler/blob/main/CHANGELOG.md"
+Issues = "https://github.com/Maxioum/Peeler/issues"
 
 [project.scripts]
 peeler = "peeler.cli:app"
