@@ -20,3 +20,8 @@ Update readme and contributing
 ## \[0.1.2\]
 
 Remove non working example from readme [#5](https://github.com/Maxioum/Peeler/pull/5)
+
+## \[0.1.3\]
+
+Update pyproject.toml fields
+Update readme
