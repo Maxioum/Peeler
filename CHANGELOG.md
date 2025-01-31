@@ -16,3 +16,7 @@ Add the manifest command to generate the blender_manifest.toml [#1](https://gith
 ## \[0.1.1\]
 
 Update readme and contributing
+
+## \[0.1.2\]
+
+Remove non working example from readme [#5](https://github.com/Maxioum/Peeler/pull/5)
