@@ -1,3 +1,7 @@
+# # SPDX-FileCopyrightText: 2025 Maxime Letellier <maxime.eliot.letellier@gmail.com>
+#
+# # SPDX-License-Identifier: GPL-2.0-or-later
+
 from typing import Any, Dict
 from pathlib import Path
 
