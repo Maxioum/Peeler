@@ -41,6 +41,16 @@ repos:
           - --config
           - .ruff.toml
 
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.5.5
+    hooks:
+      - id: insert-license
+        files: ^peeler[\/\\].*\.py$
+        args:
+          - --license-filepath
+          - license_header.txt
+          - --use-current-year
+
   - repo: https://github.com/executablebooks/mdformat
     rev: 0.7.21
     hooks:
