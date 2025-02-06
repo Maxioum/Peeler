@@ -1,3 +1,7 @@
+# # SPDX-FileCopyrightText: 2025 Maxime Letellier <maxime.eliot.letellier@gmail.com>
+#
+# # SPDX-License-Identifier: GPL-2.0-or-later
+
 from __future__ import annotations
 
 from functools import partial
