@@ -26,6 +26,7 @@ dependencies = [
     "tomlkit>=0.13.2",
     "typer>=0.15.1",
     "validate-pyproject>=0.23",
+    "wheel-filename>=1.4.2",
 ]
 
 
@@ -37,6 +38,11 @@ Issues = "https://github.com/Maxioum/Peeler/issues"
 
 [project.scripts]
 peeler = "peeler.cli:app"
+
+[project.optional-dependencies]
+uv = [
+    "uv==0.5.17",
+]
 
 
 [tool.uv.workspace]
@@ -53,6 +59,7 @@ dev = [
     "pytest-click>=1.1.0",
     "pytest-cov>=6.0.0",
 ]
+
 
 [tool.hatch.version]
 path = "version.txt"

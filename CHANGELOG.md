@@ -25,3 +25,7 @@ Remove non working example from readme [#5](https://github.com/Maxioum/Peeler/pu
 
 Update pyproject.toml fields
 Update readme
+
+## \[0.2.0\]
+
+Add download wheels feature [#10](https://github.com/Maxioum/Peeler/pull/10)

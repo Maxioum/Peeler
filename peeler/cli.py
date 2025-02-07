@@ -3,9 +3,9 @@
 # # SPDX-License-Identifier: GPL-2.0-or-later
 
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
-from typer import Typer, Argument
+from typer import Argument, Typer
 
 app = Typer()
 
@@ -35,6 +35,26 @@ def manifest(
     from .command.manifest import manifest_command
 
     manifest_command(pyproject, blender_manifest)
+
+
+@app.command(
+    help=f"Call a command to download wheels.",
+)
+def wheels(
+    pyproject: Annotated[Path, Argument()],
+    blender_manifest: Annotated[Path, Argument()],
+    wheels_directory: Annotated[Path | None, Argument()] = None,
+) -> None:
+    """Call the command to download wheels and write paths to the blender manifest.
+
+    :param pyproject_file: The pyproject file.
+    :param blender_manifest_file: the blender manifest file
+    :param wheels_directory: the directory to download wheels into.
+    """
+
+    from .command.wheels import wheels_command
+
+    wheels_command(pyproject, blender_manifest, wheels_directory)
 
 
 if __name__ == "__main__":
