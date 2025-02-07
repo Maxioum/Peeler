@@ -1,9 +1,38 @@
 # Peeler
 
 
->A tool to use a `pyproject.toml` file instead (or alongside) of the `blender_manifest.toml` required for building blender add-ons since Blender 4.2 .
+>Use a `pyproject.toml` file instead (or alongside) of the `blender_manifest.toml` required for building blender add-ons since Blender 4.2 .
 
-To install run:
+>Easily package a **blender add-on** without having to **manually** download dependencies `wheels` (and dependencies of dependencies !) and **manually** write theirs paths to `blender_manifest.toml` .
+
+
+# Installation
+
+[uv](https://docs.astral.sh/uv/) is needed to use the [Wheels](#wheels) feature
+
+## If you don't have uv installed
+
+Either [install uv](https://docs.astral.sh/uv/getting-started/installation/) and run:
+
+```bash
+pip install peeler
+```
+
+Or install uv and peeler at once:
+
+```bash
+pip install peeler[uv]
+```
+
+## If you're already a uv user
+
+Peeler doesn't need to be added in your project dependencies, meaning you can use directly peeler as a tool:
+
+```bash
+uvx peeler [OPTIONS] COMMAND [ARGS]
+```
+
+Or install peeler without uv:
 
 ```bash
 pip install peeler
@@ -26,7 +55,7 @@ name = "My Awesome Addon"
 version = "1.0.0"
 ```
 
-- Some meta-data are specific to Blender, such as `blender_version_min`, you can specify theses in your `pyproject.toml` file under the `[tool.peeler.manifest]` table, here's a minimal `pyproject.toml` working version:
+- Some meta-data are specific to **Blender**, such as `blender_version_min`, you can specify theses in your `pyproject.toml` file under the `[tool.peeler.manifest]` table, here's a minimal `pyproject.toml` working version:
 
 ```toml
 # pyproject.toml
@@ -64,14 +93,14 @@ maintainer = "John Smith"
 tagline = "My Add-on is awesome"
 ```
 
-The manifest is filled with values from the pyproject `[project]`, `[tool.peeler.manifest]` tables and default values.
+The manifest is filled with values from the **pyproject** `[project]`, `[tool.peeler.manifest]` tables and default values.
 
 To get a full list of values required or optional in a `blender_manifest.toml` visit https://docs.blender.org/manual/en/latest/advanced/extensions/getting_started.html#manifest
 
 
 ## Wheels
 
-Download the wheels needed to package your add-on using dependencies specified in your `pyproject.toml`, and write their paths to `blender_manifest.toml`
+Download the **wheels** needed to package your add-on using dependencies specified in your `pyproject.toml`, and write their paths to `blender_manifest.toml`
 
 - In your `pyproject.toml` specify your dependencies:
 
@@ -92,7 +121,7 @@ dependencies = [
 
 ```
 
-- Run peeler to downloads the wheels for all platforms:
+- Run peeler to downloads the wheels for **all platforms**:
 
 
 ```bash
@@ -134,7 +163,7 @@ wheels = [
 
 ```
 
-Note that the dependencies of the dependencies of the specified in `pyproject.toml` are also downloaded, neat !
+Note that the **dependencies of the dependencies** of the specified in `pyproject.toml` are also downloaded, neat !
 
 ```bash
 # pillow and rich dependency tree resolved from
