@@ -2,15 +2,16 @@
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
-import tomllib
 from collections.abc import Generator
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from pathlib import Path
 from subprocess import run
 from typing import Dict, List
 
 from tomlkit import TOMLDocument
+from tomlkit.toml_file import TOMLFile
 
+from peeler.utils import restore_file
 from peeler.uv_utils import find_uv_bin
 
 LOCK_FILE = "uv.lock"
@@ -21,7 +22,7 @@ def _get_lock_path(pyproject_file: Path) -> Path:
 
 
 @contextmanager
-def _generate_lock_file(pyproject_file: Path) -> Generator[Path, None, None]:
+def _generate_lock_file(pyproject_file: Path, *, unlink: bool) -> Generator[Path, None, None]:
     uv_bin = find_uv_bin()
 
     run(
@@ -44,7 +45,8 @@ def _generate_lock_file(pyproject_file: Path) -> Generator[Path, None, None]:
     try:
         yield lock_file
     finally:
-        lock_file.unlink()
+        if unlink:
+            lock_file.unlink()
 
 
 def _get_wheels_urls_from_lock(lock_toml: TOMLDocument) -> Dict[str, List[str]]:
@@ -68,14 +70,14 @@ def get_wheels_url(pyproject_file: Path) -> Dict[str, List[str]]:
     :param pyproject_file: the pyproject file.
     :return: A Dict with package name as key and a list of package urls as values.
     """
-    if (lock_file := _get_lock_path(pyproject_file)).exists():
-        with lock_file.open("rb") as file:
-            lock_toml = tomllib.load(file)
 
+    if (lock_file := _get_lock_path(pyproject_file)).exists():
+        context = restore_file(lock_file)
     else:
-        with _generate_lock_file(pyproject_file) as lock_file:
-            # open lock file to retrieve wheels url for all platform
-            with lock_file.open("rb") as file:
-                lock_toml = tomllib.load(file)
+        context = nullcontext
+
+    with context:
+        with _generate_lock_file(pyproject_file, unlink = not lock_file.exists()):
+            lock_toml = TOMLFile(lock_file).read()
 
     return _get_wheels_urls_from_lock(lock_toml)
