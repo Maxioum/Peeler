@@ -5,16 +5,16 @@
 from pathlib import Path
 from typing import List
 
-from tomlkit.toml_file import TOMLFile
 import typer
 from click import format_filename
 from click.exceptions import ClickException
+from tomlkit.toml_file import TOMLFile
 
+from peeler.pyproject.utils import Pyproject
+from peeler.utils import find_pyproject_file, restore_file
 from peeler.uv_utils import check_uv_version
-
-from ..utils import find_pyproject_file
-from ..wheels.download import download_wheels
-from ..wheels.lock import get_wheels_url
+from peeler.wheels.download import download_wheels
+from peeler.wheels.lock import get_wheels_url
 
 PYPROJECT_FILENAME = "pyproject.toml"
 
@@ -124,6 +124,24 @@ def write_wheels_path(blender_manifest_path: Path, wheels_paths: List[Path]) -> 
     file.write(doc)
 
 
+def _update_pyproject_to_supported(pyproject_file: Path) -> None:
+    """Update a pyproject file to match feature supported by Blender.
+
+    :param pyproject_file: the pyproject filepath
+    """
+
+    file = TOMLFile(pyproject_file)
+
+    pyproject = Pyproject(file.read())
+
+    pyproject.project_table.update(
+        {
+            "requires-python": "==3.11.*"
+        }
+    )
+
+    file.write(pyproject._document)
+
 def wheels_command(
     pyproject_file: Path, blender_manifest_file: Path, wheels_directory: Path | None
 ) -> None:
@@ -137,11 +155,16 @@ def wheels_command(
     check_uv_version()
 
     pyproject_file = find_pyproject_file(pyproject_file, allow_non_default_name=False)
+
     wheels_directory = _resolve_wheels_dir(
         wheels_directory, blender_manifest_file, allow_non_default_name=True
     )
 
-    urls = get_wheels_url(pyproject_file)
+    # temporary modify pyproject file
+    # to download only supported wheels by blender
+    with restore_file(pyproject_file):
+        _update_pyproject_to_supported(pyproject_file)
+        urls = get_wheels_url(pyproject_file)
 
     wheels_paths = download_wheels(wheels_directory, urls)
 
