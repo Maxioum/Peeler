@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pytest
 from tomlkit import TOMLDocument
 
 from peeler.wheels.lock import _generate_lock_file, _get_wheels_urls_from_lock
@@ -12,8 +13,13 @@ def test__get_wheels_urls_from_lock(lock_file: TOMLDocument) -> None:
     }
 
 
-def test__generate_lock_file(pyproject_path: Path) -> None:
-    with _generate_lock_file(pyproject_path) as lock_file:
+@pytest.mark.parametrize(
+    "unlink",
+    [True, False],
+    ids=["unlink_True", "unlink_False"]
+)
+def test__generate_lock_file(pyproject_path: Path, unlink: bool) -> None:
+    with _generate_lock_file(pyproject_path, unlink=unlink) as lock_file:
         assert lock_file.exists()
 
-    assert not lock_file.exists()
+    assert unlink != lock_file.exists()
