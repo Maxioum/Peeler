@@ -1,4 +1,9 @@
+import atexit
+from collections.abc import Generator
+from contextlib import contextmanager
 from pathlib import Path
+from shutil import copy2
+from tempfile import TemporaryDirectory
 
 import typer
 from click import ClickException
@@ -37,3 +42,28 @@ Should be named : `{PYPROJECT_FILENAME}` not `{pyproject_path.name}`
             raise ClickException(msg)
 
     return pyproject_path
+
+
+@contextmanager
+def restore_file(filepath: Path) -> Generator[None, None, None]:
+    """Context Manager to ensure that a file contents and metadata is restored after use.
+
+    The file must NOT be opened before calling `restore_file`
+
+    :param filepath: The path of the file
+    """
+
+    with TemporaryDirectory(ignore_cleanup_errors=True) as tempdir:
+        temp_path = Path(copy2(filepath, tempdir))
+
+        def restore_file() -> None:
+            filepath.unlink(missing_ok=True)
+            copy2(temp_path, filepath)
+
+        atexit.register(restore_file)
+
+        try:
+            yield
+        finally:
+            restore_file()
+            atexit.unregister(restore_file)
