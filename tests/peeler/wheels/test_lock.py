@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pytest
 from tomlkit import TOMLDocument
 
 from peeler.wheels.lock import _get_lock_file, _get_wheels_urls_from_lock
