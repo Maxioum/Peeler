@@ -22,7 +22,7 @@ def _get_lock_path(pyproject_file: Path) -> Path:
 
 
 @contextmanager
-def _generate_lock_file(pyproject_file: Path, *, unlink: bool) -> Generator[Path, None, None]:
+def _generate_lock_file(pyproject_file: Path, *, unlink: bool = False) -> Generator[Path, None, None]:
     uv_bin = find_uv_bin()
 
     run(
