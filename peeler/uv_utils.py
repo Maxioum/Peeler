@@ -5,6 +5,7 @@
 import re
 import shutil
 from os import PathLike, fspath
+from pathlib import Path
 from subprocess import run
 
 import typer
@@ -14,6 +15,7 @@ from packaging.version import Version
 
 version_regex = r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?"
 _MIN_UV_VERSION = Version("0.5.17")
+_MAX_UV_VERSION = Version("0.5.25")
 
 
 def get_uv_bin_version(uv_bin: PathLike) -> Version | None:
@@ -62,31 +64,31 @@ Install peeler optional dependency uv (eg: pip install peeler[uv])
 def get_uv_version() -> Version | None:
     """Return uv version."""
 
-    return get_uv_bin_version(find_uv_bin())
+    return get_uv_bin_version(Path(find_uv_bin()))
 
 
 def check_uv_version() -> None:
-    """Check the current uv version is at least 0.5.17.
+    """Check the current uv version is between 0.5.17 and 0.5.25.
 
     :raises ClickException: if uv version cannot be determined or is lower than the minimum version.
     """
 
-    uv_version = get_uv_bin_version(find_uv_bin())
+    uv_version = get_uv_bin_version(Path(find_uv_bin()))
 
     if not uv_version:
         import peeler
 
         raise ClickException(
             f"""Error when checking uv version
-To use {peeler.__name__} wheels feature uv must be at least {_MIN_UV_VERSION}
+To use {peeler.__name__} wheels feature uv must be between {_MIN_UV_VERSION} and {_MAX_UV_VERSION}
 Run `uv self update` to update uv"""
         )
 
-    if uv_version < _MIN_UV_VERSION:
+    if uv_version > _MAX_UV_VERSION or uv_version < _MIN_UV_VERSION:
         import peeler
 
         raise ClickException(
             f"""uv version is {uv_version}
-To use {peeler.__name__} wheels feature uv must be at least {_MIN_UV_VERSION}
+To use {peeler.__name__} wheels feature uv must be between {_MIN_UV_VERSION} and {_MAX_UV_VERSION}
 Run `uv self update` to update uv"""
         )
