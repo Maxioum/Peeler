@@ -2,7 +2,6 @@
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
-import tomllib
 from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
@@ -10,7 +9,9 @@ from subprocess import run
 from typing import Dict, List
 
 from tomlkit import TOMLDocument
+from tomlkit.toml_file import TOMLFile
 
+from peeler.utils import restore_file
 from peeler.uv_utils import find_uv_bin
 
 LOCK_FILE = "uv.lock"
@@ -21,30 +22,26 @@ def _get_lock_path(pyproject_file: Path) -> Path:
 
 
 @contextmanager
-def _generate_lock_file(pyproject_file: Path) -> Generator[Path, None, None]:
+def _get_lock_file(pyproject_file: Path) -> Generator[Path, None, None]:
     uv_bin = find_uv_bin()
 
-    run(
-        [
-            uv_bin,
-            "--no-config",
-            "--directory",
-            pyproject_file.parent,
-            "--no-python-downloads",
-            "lock",
-            "--no-build",
-            "--script",
-            pyproject_file,
-        ],
-        cwd=pyproject_file.parent,
-    )
+    lock_path = _get_lock_path(pyproject_file)
 
-    lock_file = _get_lock_path(pyproject_file)
+    with restore_file(lock_path, missing_ok=True):
+        run(
+            [
+                uv_bin,
+                "--no-config",
+                "--directory",
+                pyproject_file.parent,
+                "--no-python-downloads",
+                "lock",
+                "--no-build",
+            ],
+            cwd=pyproject_file.parent,
+        )
 
-    try:
-        yield lock_file
-    finally:
-        lock_file.unlink()
+        yield lock_path
 
 
 def _get_wheels_urls_from_lock(lock_toml: TOMLDocument) -> Dict[str, List[str]]:
@@ -68,14 +65,9 @@ def get_wheels_url(pyproject_file: Path) -> Dict[str, List[str]]:
     :param pyproject_file: the pyproject file.
     :return: A Dict with package name as key and a list of package urls as values.
     """
-    if (lock_file := _get_lock_path(pyproject_file)).exists():
-        with lock_file.open("rb") as file:
-            lock_toml = tomllib.load(file)
 
-    else:
-        with _generate_lock_file(pyproject_file) as lock_file:
-            # open lock file to retrieve wheels url for all platform
-            with lock_file.open("rb") as file:
-                lock_toml = tomllib.load(file)
+    with _get_lock_file(pyproject_file) as lock_file:
+        # open lock file to retrieve wheels url for all platform
+        lock_toml = TOMLFile(lock_file).read()
 
     return _get_wheels_urls_from_lock(lock_toml)
