@@ -2,7 +2,7 @@ from pathlib import Path
 
 from tomlkit import TOMLDocument
 
-from peeler.wheels.lock import _generate_lock_file, _get_wheels_urls_from_lock
+from peeler.wheels.lock import _get_lock_file, _get_wheels_urls_from_lock
 
 
 def test__get_wheels_urls_from_lock(lock_file: TOMLDocument) -> None:
@@ -12,8 +12,15 @@ def test__get_wheels_urls_from_lock(lock_file: TOMLDocument) -> None:
     }
 
 
-def test__generate_lock_file(pyproject_path: Path) -> None:
-    with _generate_lock_file(pyproject_path) as lock_file:
+def test__get_lock_file(pyproject_path_with_lock: Path) -> None:
+    with _get_lock_file(pyproject_path_with_lock) as lock_file:
+        assert lock_file.exists()
+
+    assert lock_file.exists()
+
+
+def test__get_lock_file_no_lock_file(pyproject_path_without_lock: Path) -> None:
+    with _get_lock_file(pyproject_path_without_lock) as lock_file:
         assert lock_file.exists()
 
     assert not lock_file.exists()
