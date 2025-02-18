@@ -49,20 +49,31 @@ Should be named : `{PYPROJECT_FILENAME}` not `{pyproject_path.name}`
 
 
 @contextmanager
-def restore_file(filepath: Path) -> Generator[None, None, None]:
+def restore_file(
+    filepath: Path, *, missing_ok: bool = False
+) -> Generator[None, None, None]:
     """Context Manager to ensure that a file contents and metadata is restored after use.
 
     The file must NOT be opened before calling `restore_file`
 
     :param filepath: The path of the file
+    :param missing_ok: if set to True and the file is does not exist, delete the file after use.
+    :raises FileNotFoundError: if missing_ok is False and the file does not exist
     """
 
+    file_exist = filepath.exists()
+
+    if not missing_ok and not file_exist:
+        raise FileNotFoundError(f"File {format_filename(filepath)} not found.")
+
     with TemporaryDirectory(ignore_cleanup_errors=True) as tempdir:
-        temp_path = Path(copy2(filepath, tempdir))
+        if file_exist:
+            temp_path = Path(copy2(Path(filepath), tempdir))
 
         def restore_file() -> None:
             filepath.unlink(missing_ok=True)
-            copy2(temp_path, filepath)
+            if file_exist:
+                copy2(temp_path, filepath)
 
         atexit.register(restore_file)
 
