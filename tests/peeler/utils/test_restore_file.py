@@ -2,7 +2,7 @@ from collections.abc import Generator
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from pytest import fixture
+from pytest import fixture, raises
 
 from peeler.utils import restore_file
 
@@ -57,5 +57,36 @@ def test_restore_file_on_exit(original_file: Path) -> None:
             exit(0)
     except SystemExit:
         ...
+
+    assert original_file.read_text() == _ORIGINAL_CONTENT
+
+
+def test_restore_file_file_missing(original_file: Path) -> None:
+    original_file.unlink()
+
+    with restore_file(original_file, missing_ok=True):
+        original_file.write_text(_TEMP_CONTENT)
+
+    assert not original_file.exists()
+
+
+def test_restore_file_file_missing_raises(original_file: Path) -> None:
+    original_file.unlink()
+
+    with raises(FileNotFoundError):
+        with restore_file(original_file, missing_ok=False):
+            original_file.write_text(_TEMP_CONTENT)
+
+    assert not original_file.exists()
+
+
+def test_restore_file_twice(original_file: Path) -> None:
+    with restore_file(original_file):
+        original_file.write_text(_TEMP_CONTENT)
+
+        with restore_file(original_file):
+            original_file.write_text(_TEMP_CONTENT + _TEMP_CONTENT)
+
+        assert original_file.read_text() == _TEMP_CONTENT
 
     assert original_file.read_text() == _ORIGINAL_CONTENT
