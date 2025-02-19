@@ -2,10 +2,12 @@ import shutil
 from pathlib import Path
 
 import tomlkit
-from pytest import TempdirFactory, fixture
+from pytest import fixture
 from tomlkit import TOMLDocument
 
 TEST_DATA_DIR = Path(__file__).parent / "data"
+TEST_PYPROJECT = TEST_DATA_DIR / "pyproject.toml"
+TEST_LOCK = TEST_DATA_DIR / "uv.lock"
 
 
 @fixture
@@ -16,8 +18,11 @@ def lock_file() -> TOMLDocument:
 
 
 @fixture
-def pyproject_path(tmpdir_factory: TempdirFactory) -> Path:
-    return shutil.copy2(
-        TEST_DATA_DIR / "pyproject.toml",
-        Path(tmpdir_factory.mktemp("temp_dir")) / "pyproject.toml",
-    )
+def pyproject_path_with_lock(tmp_path: Path) -> Path:
+    shutil.copy2(TEST_LOCK, tmp_path / TEST_LOCK.name)
+    return shutil.copy2(TEST_PYPROJECT, tmp_path / TEST_PYPROJECT.name)
+
+
+@fixture
+def pyproject_path_without_lock(tmp_path: Path) -> Path:
+    return shutil.copy2(TEST_PYPROJECT, tmp_path / TEST_PYPROJECT.name)

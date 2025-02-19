@@ -3,6 +3,9 @@ name = "test_pyproject"
 version = "1.0.0"
 requires-python = ">=3.11"
 
+dependencies = [
+    "numpy<2"
+]
 
 [tool.peeler]
 overwrite = true

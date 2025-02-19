@@ -8,14 +8,12 @@ from os import PathLike, fspath
 from pathlib import Path
 from subprocess import run
 
-import typer
-import typer.rich_utils
-from click import ClickException, format_filename
+from click import ClickException
 from packaging.version import Version
 
 version_regex = r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?"
 _MIN_UV_VERSION = Version("0.5.17")
-_MAX_UV_VERSION = Version("0.5.25")
+_MAX_UV_VERSION = Version("0.6.1")
 
 
 def get_uv_bin_version(uv_bin: PathLike) -> Version | None:
@@ -68,7 +66,7 @@ def get_uv_version() -> Version | None:
 
 
 def check_uv_version() -> None:
-    """Check the current uv version is between 0.5.17 and 0.5.25.
+    """Check the current uv version is between 0.5.17 and 0.6.1.
 
     :raises ClickException: if uv version cannot be determined or is lower than the minimum version.
     """
