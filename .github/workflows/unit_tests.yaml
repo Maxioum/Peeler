@@ -29,8 +29,6 @@ jobs:
     strategy:
         matrix:
           uv-version:
-            - "0.5.17"
-            - "0.5.26"
             - ${{ needs.setup_tests.outputs.max_uv_version }}
 
           python-version:
