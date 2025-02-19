@@ -2,7 +2,7 @@ import shutil
 from pathlib import Path
 
 import tomlkit
-from pytest import TempdirFactory, fixture
+from pytest import fixture
 from tomlkit import TOMLDocument
 
 TEST_DATA_DIR = Path(__file__).parent / "data"

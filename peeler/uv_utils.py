@@ -8,9 +8,7 @@ from os import PathLike, fspath
 from pathlib import Path
 from subprocess import run
 
-import typer
-import typer.rich_utils
-from click import ClickException, format_filename
+from click import ClickException
 from packaging.version import Version
 
 version_regex = r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?"
