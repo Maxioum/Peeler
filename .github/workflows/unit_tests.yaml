@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       max_uv_version: ${{steps.get_current_version.outputs.max_uv_version}}
-
     steps:
       - uses: actions/checkout@v4
 
@@ -45,6 +44,7 @@ jobs:
           version: ${{ matrix.uv-version }}
           python-version: ${{ matrix.python-version }}
           enable-cache: true
+          cache-suffix: ${{ matrix.uv-version }}-${{ matrix.python-version }}
 
       - name: Setup Python
         run: uv python install
