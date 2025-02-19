@@ -1,0 +1,59 @@
+name: Python Unit Testing
+
+on: [push]
+
+env:
+  UV_SYSTEM_PYTHON: 1
+
+jobs:
+  setup_tests:
+    runs-on: ubuntu-latest
+    outputs:
+      max_uv_version: ${{steps.get_current_version.outputs.max_uv_version}}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get current uv version from .max-uv-version
+        id: get_current_version
+        run: |
+          MAX_VERSION=$(cat .max-uv-version)
+          echo max supported uv version is $MAX_VERSION
+          echo "max_uv_version=$MAX_VERSION" >> $GITHUB_OUTPUT
+
+  run_tests:
+    needs: setup_tests
+    runs-on: ubuntu-latest
+    strategy:
+        matrix:
+          uv-version:
+            - "0.5.17"
+            - "0.5.26"
+            - ${{ needs.setup_tests.outputs.max_uv_version }}
+
+          python-version:
+            - "3.11"
+            - "3.12"
+            - "3.13"
+
+    steps:
+      - uses: actions/checkout@v4
+
+
+      - name: Setup UV
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ matrix.uv-version }}
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+
+      - name: Setup Python
+        run: uv python install
+
+      - name: Install the project
+        run: uv sync --all-extras --dev --no-extra uv
+
+      - name: Run tests
+        run: uv run pytest .
+
+      - name: Minimize uv cache
+        run: uv cache prune --ci
