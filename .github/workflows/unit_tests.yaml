@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       max_uv_version: ${{steps.get_current_version.outputs.max_uv_version}}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -21,6 +22,8 @@ jobs:
           echo "max_uv_version=$MAX_VERSION" >> $GITHUB_OUTPUT
 
   run_tests:
+    env:
+      UV_CACHE_DIR: /tmp/.uv-cache
     needs: setup_tests
     runs-on: ubuntu-latest
     strategy:
@@ -38,7 +41,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-
       - name: Setup UV
         uses: astral-sh/setup-uv@v5
         with:
@@ -48,6 +50,12 @@ jobs:
 
       - name: Setup Python
         run: uv python install
+
+      - name: Restore uv cache
+        uses: actions/cache@v4
+        with:
+          path: ${{env.UV_CACHE_DIR}}
+          key: uv-${{ runner.os }}-${{ matrix.uv-version }}-${{ matrix.python-version }}
 
       - name: Install the project
         run: uv sync --all-extras --dev --no-extra uv
