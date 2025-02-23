@@ -11,9 +11,9 @@ from subprocess import run
 from click import ClickException
 from packaging.version import Version
 
+from peeler import MAX_UV_VERSION, MIN_UV_VERSION
+
 version_regex = r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?"
-_MIN_UV_VERSION = Version("0.5.17")
-_MAX_UV_VERSION = Version("0.6.1")
 
 
 def get_uv_bin_version(uv_bin: PathLike) -> Version | None:
@@ -78,15 +78,15 @@ def check_uv_version() -> None:
 
         raise ClickException(
             f"""Error when checking uv version
-To use {peeler.__name__} wheels feature uv must be between {_MIN_UV_VERSION} and {_MAX_UV_VERSION}
+To use {peeler.__name__} wheels feature uv must be between {MIN_UV_VERSION} and {MAX_UV_VERSION}
 Run `uv self update` to update uv"""
         )
 
-    if uv_version > _MAX_UV_VERSION or uv_version < _MIN_UV_VERSION:
+    if uv_version > MAX_UV_VERSION or uv_version < MIN_UV_VERSION:
         import peeler
 
         raise ClickException(
             f"""uv version is {uv_version}
-To use {peeler.__name__} wheels feature uv must be between {_MIN_UV_VERSION} and {_MAX_UV_VERSION}
+To use {peeler.__name__} wheels feature uv must be between {MIN_UV_VERSION} and {MAX_UV_VERSION}
 Run `uv self update` to update uv"""
         )
