@@ -65,7 +65,7 @@ dev = [
 path = "version.txt"
 
 [tool.hatch.build]
-include = ["peeler"]
+include = ["peeler", ".max-uv-version"]
 exclude = ["tests"]
 
 [tool.pytest.ini_options]
