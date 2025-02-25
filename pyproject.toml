@@ -1,6 +1,6 @@
 [project]
 name = "peeler"
-description = "A tool to use a `pyproject.toml` instead of a `blender_manifest.toml` to build Blender add-ons"
+description = "A tool to use a pyproject.toml instead of a blender_manifest.toml to build Blender add-ons"
 readme = "README.md"
 requires-python = ">=3.11"
 classifiers = [
