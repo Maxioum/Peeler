@@ -1,0 +1,59 @@
+name: Unit Testing
+description: Run python unit test with pytest and specified python and uv versions
+  
+inputs:
+  uv-version:
+    description: uv version to test with
+    required: true
+    default: ''
+  python-version:
+    description: python version to test with
+    required: true
+    default: ''
+    
+outputs:
+  test-output:
+    description: Outcome of the test step
+    value: ${{ steps.run_tests.outcome }}
+  test-logs:
+    description: Pytest logs
+    value: pytest-logs-uv-${{ inputs.uv-version }}-${{ inputs.python-version }}
+
+runs:
+  using: 'composite'
+  steps:
+  - uses: actions/checkout@v4
+
+  - uses: astral-sh/setup-uv@v5
+    with:
+      version: ${{ inputs.uv-version }}
+      python-version: ${{ inputs.python-version }}
+      enable-cache: true
+      cache-suffix: ${{ inputs.uv-version }}-${{ inputs.python-version }}
+      ignore-nothing-to-cache: true
+  
+  - name: Install the project
+    shell: bash
+    run: uv sync --all-extras --dev --no-extra uv
+
+  - name: Run unit tests
+    shell: bash
+    id: run_tests
+    run: |
+      uv version
+      uv run pytest --tb=no -q | tee pytest_output.txt
+    continue-on-error: true
+
+  - name: Upload pytest logs
+    id: upload_tests_logs
+    uses: actions/upload-artifact@v4
+    if: always()
+    with:
+      name: pytest-logs-uv-${{ inputs.uv-version }}-${{ inputs.python-version }}
+      path: pytest_output.txt
+
+  - name: Reduce uv cache size
+    shell: bash
+    if: always()
+    run: uv cache prune --ci
+
