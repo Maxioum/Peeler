@@ -1,14 +1,15 @@
-# Peeler
+# Peeler – Simplify Your Blender Add-on Packaging
 
+A tool to easily package your **Blender add-on**
 
->Use a `pyproject.toml` file instead (or alongside) of the `blender_manifest.toml` required for building blender add-ons since Blender 4.2 .
+Building and installing a Blender add-on with dependencies requires **manually** downloading the necessary wheels and specifying their paths in `blender_manifest.toml`. Peeler automates this process, allowing you to package your Blender add-on without **manually handling dependencies** (and their own dependencies !) or **manually writing their paths** in `blender_manifest.toml`.
 
->Easily package a **blender add-on** without having to **manually** download dependencies `wheels` (and dependencies of dependencies !) and **manually** write theirs paths to `blender_manifest.toml` .
+Since Blender 4.2, add-ons must use `blender_manifest.toml` instead of the standard `pyproject.toml` used in Python projects. **Peeler** lets you use `pyproject.toml` instead (or alongside) to simplify dependency management and streamline your workflow.
 
 
 # Installation
 
-[uv](https://docs.astral.sh/uv/) is needed to use the [Wheels](#wheels) feature
+[uv](https://docs.astral.sh/uv/) is required to use the [Wheels](#wheels) feature.
 
 ## If you don't have uv installed
 
@@ -18,97 +19,113 @@ Either [install uv](https://docs.astral.sh/uv/getting-started/installation/) and
 pip install peeler
 ```
 
-Or install uv and peeler at once:
+Or install uv and peeler at the same time:
 
 ```bash
 pip install peeler[uv]
 ```
 
-## If you're already a uv user
+## If you are already a uv user
 
-Peeler doesn't need to be added in your project dependencies, meaning you can use directly peeler as a tool:
+**Peeler** does not need to be added to your project dependencies -  you can use Peeler directly as a tool:
 
 ```bash
 uvx peeler [OPTIONS] COMMAND [ARGS]
 ```
 
-Or install peeler without uv:
+Or install **Peeler** without uv:
 
 ```bash
-pip install peeler
+uv pip install peeler
 ```
 
 # Features
 
 ## Manifest
 
-Create a `blender_manifest.toml` from fields in a `pyproject.toml`
+Generate the `blender_manifest.toml` from fields in a `pyproject.toml`.
 
-
-- Make sure to have a `pyproject.toml` with basic field values:
+### 1. Ensure your `pyproject.toml` contains basic field values
 
 ```toml
 # pyproject.toml
 
 [project]
-name = "My Awesome Addon"
+name = "My Awesome Add on"
 version = "1.0.0"
+requires-python = "==3.11"
 ```
 
-- Some meta-data are specific to **Blender**, such as `blender_version_min`, you can specify theses in your `pyproject.toml` file under the `[tool.peeler.manifest]` table, here's a minimal `pyproject.toml` working version:
+### 2. Some metadata are specific to **Blender**
+
+For instance `blender_version_min`, you can specify these metadata in your `pyproject.toml` file under the `[tool.peeler.manifest]` table
+Here's a minimal working version:
 
 ```toml
 # pyproject.toml
 
 [project]
-name = "My Awesome Addon"
+name = "My Awesome Add on"
 version = "1.0.0"
+requires-python = "==3.11"
 
 [tool.peeler.manifest]
 blender_version_min = "4.2.0"
-id = "my_awesome_addon"
+id = "my_awesome_add_on"
 license = ["SPDX:0BSD"]
 maintainer = "John Smith"
 tagline = "My Add-on is awesome"
 ```
 
-- Run peeler to create (or update) `blender_manifest.toml`:
-
+### 3. Run Peeler to create (or update) your `blender_manifest.toml`
 
 ```bash
 peeler manifest /path/to/your/pyproject.toml /path/to/blender_manifest.toml
 ```
 
 ```toml
-# created blender_manifest.toml
+# Generated blender_manifest.toml
 
 version = "1.0.0"
-name = "My Awesome Addon"
+name = "My Awesome Add on"
 schema_version = "1.0.0"
 type = "add-on"
 blender_version_min = "4.2.0"
-id = "my_awesome_addon"
+id = "my_awesome_add_on"
 license = ["SPDX:0BSD"]
 maintainer = "John Smith"
 tagline = "My Add-on is awesome"
 ```
 
-The manifest is filled with values from the **pyproject** `[project]`, `[tool.peeler.manifest]` tables and default values.
+The manifest is populated with values from your ``pyproject.toml`` `[project]` and `[tool.peeler.manifest]` tables, along with default values.
 
-To get a full list of values required or optional in a `blender_manifest.toml` visit https://docs.blender.org/manual/en/latest/advanced/extensions/getting_started.html#manifest
+For a full list of required and optional values in a `blender_manifest.toml` visit [Blender Documentation](https://docs.blender.org/manual/en/latest/advanced/extensions/getting_started.html#manifest)
+
+### 4. Build your add-on
+
+If your add-on has dependencies make sure to use the [Wheels](#wheels) feature below.
+
+Then to build your add-on use the [regular Blender command](https://docs.blender.org/manual/en/latest/advanced/extensions/getting_started.html#command-line):
+
+
+```bash
+blender --command extension build
+```
+
+Hint: Ensure Blender is [added to your `PATH`](https://docs.blender.org/manual/en/4.4/advanced/command_line/launch/)
 
 
 ## Wheels
 
-Download the **wheels** needed to package your add-on using dependencies specified in your `pyproject.toml`, and write their paths to `blender_manifest.toml`
+Download the required **wheels** for packaging your add-on based on the dependencies specified in your `pyproject.toml`, automatically write their paths to `blender_manifest.toml`.
 
-- In your `pyproject.toml` specify your dependencies:
+### 1. In your `pyproject.toml`, specify your dependencies
 
 ```toml
 # pyproject.toml
 
 [project]
-name = "My Awesome Addon"
+name = "My Awesome Add-on"
 version = "1.0.0"
 requires-python = "==3.11"
 
@@ -121,27 +138,27 @@ dependencies = [
 
 ```
 
-- Run peeler to downloads the wheels for **all platforms**:
+### 2. Run peeler wheels to download the wheels for **all platforms**
 
 
 ```bash
 peeler wheels ./pyproject.toml ./blender_manifest.toml
 ```
 
-Your `blender_manifest.toml` will be updated with the downloaded wheels paths
+**Peeler** updates your `blender_manifest.toml` with the downloaded wheels paths.
 
 ```toml
-# updated blender_manifest.toml
+# Updated blender_manifest.toml
 
 version = "1.0.0"
-name = "My Awesome Addon"
+name = "My Awesome Add on"
 schema_version = "1.0.0"
 type = "add-on"
 blender_version_min = "4.2.0"
 
-# the wheels as a list of paths
+# The wheels as a list of paths
 wheels = [
-    # pillow wheels for all platforms
+    # Pillow wheels for all platforms
     "./wheels/pillow-11.1.0-cp311-cp311-macosx_10_10_x86_64.whl",
     "./wheels/pillow-11.1.0-cp311-cp311-macosx_11_0_arm64.whl",
     "./wheels/pillow-11.1.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
@@ -154,7 +171,7 @@ wheels = [
     "./wheels/pillow-11.1.0-cp311-cp311-win_amd64.whl",
     "./wheels/pillow-11.1.0-cp311-cp311-win_arm64.whl",
 
-    # wheels for rich and its dependencies
+    # Wheels for rich and its dependencies
     "./wheels/rich-13.9.4-py3-none-any.whl",
     "./wheels/markdown_it_py-3.0.0-py3-none-any.whl",
     "./wheels/mdurl-0.1.2-py3-none-any.whl",
@@ -163,16 +180,16 @@ wheels = [
 
 ```
 
-Note that the **dependencies of the dependencies** of the specified in `pyproject.toml` are also downloaded, neat !
+Note that the **dependencies of the dependencies** (and so on) specified in `pyproject.toml` are also downloaded, ensuring everything is packaged correctly. Pretty neat, right?
 
 ```bash
-# pillow and rich dependency tree resolved from
+# Pillow and rich dependency tree resolved from
 # dependencies = [
 #    "Pillow==11.1.0",
 #    "rich>=13.9.4",
 # ]
 
-My Awesome Addon v1.0.0
+My Awesome Add on v1.0.0
 ├── pillow v11.1.0
 ├── rich v13.9.4
 │   ├── markdown-it-py v3.0.0
