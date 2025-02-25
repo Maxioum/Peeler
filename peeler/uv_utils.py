@@ -66,27 +66,48 @@ def get_uv_version() -> Version | None:
 
 
 def check_uv_version() -> None:
-    """Check the current uv version is between 0.5.17 and 0.6.1.
+    """Check the current uv version is between 0.5.17 and current supported max uv version.
+
+    See .max-uv-version or pyproject.toml files.
 
     :raises ClickException: if uv version cannot be determined or is lower than the minimum version.
     """
 
     uv_version = get_uv_bin_version(Path(find_uv_bin()))
 
-    if not uv_version:
-        import peeler
+    try:
+        import uv
+    except (ModuleNotFoundError, FileNotFoundError):
+        from_pip = False
+    else:
+        from_pip = True
 
-        raise ClickException(
-            f"""Error when checking uv version
-To use {peeler.__name__} wheels feature uv must be between {MIN_UV_VERSION} and {MAX_UV_VERSION}
-Run `uv self update` to update uv"""
-        )
+    import peeler
+
+    body = f"To use {peeler.__name__} wheels feature uv version must be between {MIN_UV_VERSION} and {MAX_UV_VERSION}"
+
+    if from_pip:
+        update_uv = """Install peeler with a supported uv version:
+
+pip install peeler[uv]"""
+    else:
+        update_uv = f"""Use peeler with a supported uv version without changing your current uv installation:
+
+uvx peeler[uv] [OPTIONS] COMMAND [ARGS]"""
+
+    if not uv_version:
+        header = "Error when checking uv version. Make sur to have installed, visit: https://docs.astral.sh/uv/getting-started/installation/"
+        raise ClickException(f"""{header}
+
+{body}
+
+{update_uv}""")
 
     if uv_version > MAX_UV_VERSION or uv_version < MIN_UV_VERSION:
         import peeler
 
-        raise ClickException(
-            f"""uv version is {uv_version}
-To use {peeler.__name__} wheels feature uv must be between {MIN_UV_VERSION} and {MAX_UV_VERSION}
-Run `uv self update` to update uv"""
-        )
+        header = f"uv version is {uv_version}"
+
+        raise ClickException(f"""{header}
+{body}
+{update_uv}""")
