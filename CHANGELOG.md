@@ -37,3 +37,7 @@ Temporary restrict uv version between 0.5.17 and 0.5.25 [#20](https://github.com
 ## [0.2.2]
 
 Update lock file generation, allow uv versions from 0.5.17 to 0.6.1 [#22](https://github.com/Maxioum/Peeler/pull/22) [#18](https://github.com/Maxioum/Peeler/issues/18)
+
+## [0.2.3]
+
+Update README.md
