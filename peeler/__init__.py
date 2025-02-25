@@ -2,9 +2,19 @@
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Peeler.
+"""Peeler - Simplify Your Blender Add-on Packaging.
 
-A tool to create or update a blender_manifest.toml from a pyproject.toml
+Usage: peeler [OPTIONS] COMMAND [ARGS]...
+
+Run `peeler --help` for more info.
+
+**Peeler Commands**:
+
+`version:` print the currently installed `peeler` version.
+
+`manifest:` create or update `blender_manifest.toml` from values in `pyproject.toml`.
+
+`wheels:` download wheels and write paths to the `blender_manifest.toml`.
 """
 
 from pathlib import Path
