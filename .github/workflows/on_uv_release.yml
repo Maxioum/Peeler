@@ -48,14 +48,14 @@ jobs:
             set -e
             CURRENT_VERSION="${{ steps.get-current-version.outputs.current-version }}"
             LATEST_VERSION="${{ steps.get-latest-release.outputs.latest-version }}"
-  
+
             if [[ -z "$CURRENT_VERSION" || -z "$LATEST_VERSION" ]]; then
               echo "Error: When comparing versions" >&2
               echo "current-version: $CURRENT_VERSION" >&2
               echo "latest-version: $LATEST_VERSION" >&2
               exit 1
             fi
-  
+
             if [[ "$CURRENT_VERSION" != "$LATEST_VERSION" ]]; then
               echo "New uv version available: $LATEST_VERSION"
               echo "new-version=$LATEST_VERSION" >> "$GITHUB_OUTPUT"
@@ -85,7 +85,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Unit Tests
         id: unit-tests
         uses: ./.github/actions/unit_tests/
@@ -108,7 +108,6 @@ jobs:
           name: ${{ needs.unit-tests.outputs.tests-logs }}
 
       - name: Create issue for failing tests
-        if: steps.check-if-issue-exists.outputs.exists == 'false'
         uses: peter-evans/create-issue-from-file@v5
         with:
           title: ${{ env.issue-title }}
@@ -129,15 +128,15 @@ jobs:
         with:
           version: "${{ needs.check-uv-version.outputs.new-version }}"
           enable-cache: true
-      
+
       - name: Update pyproject.toml with new max uv version
         run: |
           uvx --from=toml-cli toml set --toml-path=pyproject.toml project.optional-dependencies.uv[1] "uv <= ${{ needs.check-uv-version.outputs.new-version }}"
-  
+
       - name: Update .max-uv-version file
         run: |
           echo "${{ needs.check-uv-version.outputs.new-version }}" > ${{ env.UV_VERSION_FILE }}
-  
+
       - name: Create pull request
         uses: peter-evans/create-pull-request@v6
         with:
