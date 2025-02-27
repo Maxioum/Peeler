@@ -1,12 +1,14 @@
-from typing import Any, Dict
-from pytest import fixture, FixtureRequest
 from pathlib import Path
+from typing import Any, Dict
+
 import tomlkit
+from pytest import FixtureRequest, fixture
 from tomlkit import TOMLDocument
+from tomlkit.items import Table
+from tomlkit.toml_file import TOMLFile
 
-from peeler.pyproject.validator import Validator
 from peeler.pyproject.parse import Parser
-
+from peeler.pyproject.validator import Validator
 
 TEST_DATA_DIR = Path(__file__).parent / "data"
 
@@ -39,3 +41,16 @@ def parser(
         return Parser(
             tomlkit.load(file), blender_manifest_schema, peeler_manifest_schema
         )
+
+@fixture(scope="function")
+def validator_requires_python(request: FixtureRequest) -> Validator:
+    path: Path = TEST_DATA_DIR / "pyproject_minimal.toml"
+
+    document = TOMLFile(path).read()
+
+    project_table: Table = document.get("project")
+
+    project_table.update({"requires-python": request.param})
+
+    return Validator(document, path)
+
