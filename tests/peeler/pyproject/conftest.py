@@ -1,14 +1,33 @@
-from typing import Any, Dict
-from pytest import fixture, FixtureRequest
 from pathlib import Path
+from typing import Any, Dict
+
 import tomlkit
+from pytest import FixtureRequest, fixture
 from tomlkit import TOMLDocument
+from tomlkit.toml_file import TOMLFile
 
-from peeler.pyproject.validator import Validator
 from peeler.pyproject.parse import Parser
-
+from peeler.pyproject.utils import Pyproject
+from peeler.pyproject.validator import Validator
 
 TEST_DATA_DIR = Path(__file__).parent / "data"
+PYPROJECT_MINIMAL = TEST_DATA_DIR / "pyproject_no_peeler_table.toml"
+
+
+@fixture
+def pyproject_requires_python(request: FixtureRequest) -> Pyproject:
+    key = "requires-python"
+
+    pyproject = Pyproject(TOMLFile(PYPROJECT_MINIMAL).read())
+
+    requires_python: str | None = request.param
+
+    if requires_python is not None:
+        pyproject.project_table.update({key: str(request.param)})
+    elif key in pyproject.project_table:
+        del pyproject.project_table[key]
+
+    return pyproject
 
 
 @fixture
