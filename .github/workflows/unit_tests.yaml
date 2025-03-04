@@ -28,6 +28,7 @@ jobs:
           uv-version:
             - 0.5.17
             - 0.5.26
+            - 0.6.3
             - ${{ needs.setup_tests.outputs.max_uv_version }}
 
           python-version:
@@ -37,7 +38,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Unit Tests
         id: unit-tests
         uses: ./.github/actions/unit_tests/
