@@ -6,7 +6,6 @@ Building and installing a Blender add-on with dependencies requires **manually**
 
 Since Blender 4.2, add-ons must use `blender_manifest.toml` instead of the standard `pyproject.toml` used in Python projects. **Peeler** lets you use `pyproject.toml` instead (or alongside) to simplify dependency management and streamline your workflow.
 
-
 # Installation
 
 [uv](https://docs.astral.sh/uv/) is required to use the [Wheels](#wheels) feature.
@@ -27,7 +26,7 @@ pip install peeler[uv]
 
 ## If you are already a uv user
 
-**Peeler** does not need to be added to your project dependencies -  you can use Peeler directly as a tool:
+**Peeler** does not need to be added to your project dependencies - you can use Peeler directly as a tool:
 
 ```bash
 uvx peeler [OPTIONS] COMMAND [ARGS]
@@ -97,7 +96,7 @@ maintainer = "John Smith"
 tagline = "My Add-on is awesome"
 ```
 
-The manifest is populated with values from your ``pyproject.toml`` `[project]` and `[tool.peeler.manifest]` tables, along with default values.
+The manifest is populated with values from your `pyproject.toml` `[project]` and `[tool.peeler.manifest]` tables, along with default values.
 
 For a full list of required and optional values in a `blender_manifest.toml` visit [Blender Documentation](https://docs.blender.org/manual/en/latest/advanced/extensions/getting_started.html#manifest)
 
@@ -107,13 +106,11 @@ If your add-on has dependencies make sure to use the [Wheels](#wheels) feature b
 
 Then to build your add-on use the [regular Blender command](https://docs.blender.org/manual/en/latest/advanced/extensions/getting_started.html#command-line):
 
-
 ```bash
 blender --command extension build
 ```
 
 Hint: Ensure Blender is [added to your `PATH`](https://docs.blender.org/manual/en/4.4/advanced/command_line/launch/)
-
 
 ## Wheels
 
@@ -139,7 +136,6 @@ dependencies = [
 ```
 
 ### 2. Run peeler wheels to download the wheels for **all platforms**
-
 
 ```bash
 peeler wheels ./pyproject.toml ./blender_manifest.toml
