@@ -52,7 +52,7 @@ Generate the `blender_manifest.toml` from fields in a `pyproject.toml`.
 [project]
 name = "My Awesome Add on"
 version = "1.0.0"
-requires-python = "==3.11"
+requires-python = "==3.11.*"
 ```
 
 ### 2. Some metadata are specific to **Blender**
@@ -66,7 +66,7 @@ Here's a minimal working version:
 [project]
 name = "My Awesome Add on"
 version = "1.0.0"
-requires-python = "==3.11"
+requires-python = "==3.11.*"
 
 [tool.peeler.manifest]
 blender_version_min = "4.2.0"
@@ -124,7 +124,7 @@ Download the required **wheels** for packaging your add-on based on the dependen
 [project]
 name = "My Awesome Add-on"
 version = "1.0.0"
-requires-python = "==3.11"
+requires-python = "==3.11.*"
 
 # For instance rich and Pillow (the popular image manipulation module)
 
