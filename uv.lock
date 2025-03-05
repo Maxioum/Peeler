@@ -166,6 +166,7 @@ version = "0.0.1"
 source = { editable = "." }
 dependencies = [
     { name = "jsonschema" },
+    { name = "packaging" },
     { name = "pyproject-metadata" },
     { name = "rich" },
     { name = "tomlkit" },
@@ -189,6 +190,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "jsonschema", specifier = ">=4.23.0" },
+    { name = "packaging", specifier = ">=24.2" },
     { name = "pyproject-metadata", specifier = ">=0.9.0" },
     { name = "rich", specifier = ">=13.9.4" },
     { name = "tomlkit", specifier = ">=0.13.2" },
