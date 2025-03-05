@@ -6,8 +6,9 @@ from pathlib import Path
 from typing import Any, Dict
 
 from click import format_filename
+from dep_logic.specifiers import RangeSpecifier, parse_version_specifier
 from fastjsonschema import JsonSchemaValueException
-from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 from tomlkit import TOMLDocument
 from validate_pyproject.api import Validator as _Validator
 from validate_pyproject.plugins import PluginWrapper
@@ -15,7 +16,10 @@ from validate_pyproject.plugins import PluginWrapper
 from ..schema import peeler_json_schema
 from .utils import Pyproject
 
-_BLENDER_SUPPORTED_PYTHON_VERSION = {"3.11"}
+_BLENDER_SUPPORTED_PYTHON_VERSION = RangeSpecifier(
+    Version("3.11"), Version("3.12"), include_min=True, include_max=False
+)
+
 
 def _peeler_plugin(peeler: str) -> Dict[str, Any]:
     json_schema = peeler_json_schema()
@@ -54,8 +58,6 @@ class Validator:
             msg = "The pyproject [tool.peeler] table must not be empty."
 
         raise JsonSchemaValueException(message=f"{msg} (at {path})", name="tool.peeler")
-    
-        
 
     def _validate_python_version(self, pyproject: TOMLDocument) -> TOMLDocument:
         """Raise an error the python versions in project requires-python don't contains a supported python version by Blender.
@@ -71,14 +73,31 @@ class Validator:
         if (python_versions := table.get("requires-python", None)) is None:
             return pyproject
 
-        s = SpecifierSet(python_versions)
-        
-        if not any(s.contains(py_version) for py_version in _BLENDER_SUPPORTED_PYTHON_VERSION):
-            msg = f"The python versions {s} specified in your pyproject 'project.requires-python' are not supported by Blender"
-            raise JsonSchemaValueException(message=f"{msg} (at {format_filename(self.pyproject_path.resolve())})", name="project.requires-python")
+        version_specifier = parse_version_specifier(python_versions)
+
+        if (version_specifier & _BLENDER_SUPPORTED_PYTHON_VERSION).is_empty():
+            msg = f"""Invalid Python version range specified in your pyproject:
+
+                [project]
+                ...
+                requires-python = "{python_versions}"
+
+                None of the specified Python versions are supported by Blender.
+
+                Python version range required by Blender: {_BLENDER_SUPPORTED_PYTHON_VERSION}
+
+                Consider deleting or updating the requires-python field:
+
+                [project]
+                ...
+                requires-python = "{_BLENDER_SUPPORTED_PYTHON_VERSION}"
+
+                (at: {format_filename(self.pyproject_path.resolve())})"""
+
+            raise JsonSchemaValueException(message=msg, name="project.requires-python")
 
         return pyproject
-    
+
     def validate(self) -> None:
         """Validate the file as generic pyproject file, and for peeler purposes.
 
@@ -90,7 +109,7 @@ class Validator:
             extra_validations=[
                 self._validate_has_peeler_table,
                 self._validate_python_version,
-                ],
+            ],
         )
 
         validator(self.pyproject)
