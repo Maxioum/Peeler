@@ -42,3 +42,15 @@ Update lock file generation, allow uv versions from 0.5.17 to 0.6.1 [#22](https:
 
 Update README.md
 Improve error messages when uv version is not currently supported [#26](https://github.com/Maxioum/Peeler/pull/26)
+
+## [0.2.4]
+
+Update max uv version to 0.6.4 by @github-actions in [#29](https://github.com/Maxioum/Peeler/pull/29)
+
+## [0.2.5]
+
+Replace requires-python = "==3.11" by requires-python = "==3.11.*" [#30](https://github.com/Maxioum/Peeler/pull/30)
+
+## [0.2.6]
+
+Update max uv version to 0.6.5 by @github-actions in [#32](https://github.com/Maxioum/Peeler/pull/32)
