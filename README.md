@@ -1,5 +1,9 @@
 # Peeler – Simplify Your Blender Add-on Packaging
 
+>This package is under active development. Feel free to open an issue or ask for help.
+I’ll be happy to develop the feature you need. :smile:
+
+
 A tool to easily package your **Blender add-on**
 
 Building and installing a Blender add-on with dependencies requires **manually** downloading the necessary wheels and specifying their paths in `blender_manifest.toml`. Peeler automates this process, allowing you to package your Blender add-on without **manually handling dependencies** (and their own dependencies !) or **manually writing their paths** in `blender_manifest.toml`.
