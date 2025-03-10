@@ -1,6 +1,6 @@
 # Peeler – Simplify Your Blender Add-on Packaging
 
->This package is under active development. Feel free to open an issue or ask for help.
+>This package is under active development. Feel free to ask for help [here](https://github.com/Maxioum) or open an issue [here](https://github.com/Maxioum/Peeler/issues/new).
 I’ll be happy to develop the feature you need. :smile:
 
 
