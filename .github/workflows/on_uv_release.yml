@@ -137,6 +137,10 @@ jobs:
         run: |
           echo "${{ needs.check-uv-version.outputs.new-version }}" > ${{ env.UV_VERSION_FILE }}
 
+      - name: Update uv.lock
+        run: |
+          uv lock
+
       - name: Create pull request
         uses: peter-evans/create-pull-request@v6
         with:
