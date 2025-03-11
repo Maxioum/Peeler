@@ -86,6 +86,18 @@ toml = [
 ]
 
 [[package]]
+name = "dep-logic"
+version = "0.4.11"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "packaging" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/fa/d8/11db71e3b8961152a777258cf627f9fe9bacce7ec2f2e07d2e8c6ad0cd90/dep_logic-0.4.11.tar.gz", hash = "sha256:6084c81ce683943a60394ca0f8531ff803dfd955b5d7f52fb0571b53b930a182", size = 35450 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5d/30/6504e03132820608b2a92957f82ced57df81051f342cc6f1c32e1e5c5681/dep_logic-0.4.11-py3-none-any.whl", hash = "sha256:44cf69b3e0e369315e7d4cafa4a5050aa70666753831bf0c27b7f3eadbcf70ce", size = 34493 },
+]
+
+[[package]]
 name = "fastjsonschema"
 version = "2.21.1"
 source = { registry = "https://pypi.org/simple" }
@@ -165,7 +177,9 @@ name = "peeler"
 version = "0.0.1"
 source = { editable = "." }
 dependencies = [
+    { name = "dep-logic" },
     { name = "jsonschema" },
+    { name = "packaging" },
     { name = "pyproject-metadata" },
     { name = "rich" },
     { name = "tomlkit" },
@@ -188,7 +202,9 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "dep-logic", specifier = ">=0.4.11" },
     { name = "jsonschema", specifier = ">=4.23.0" },
+    { name = "packaging", specifier = ">=24.2" },
     { name = "pyproject-metadata", specifier = ">=0.9.0" },
     { name = "rich", specifier = ">=13.9.4" },
     { name = "tomlkit", specifier = ">=0.13.2" },
