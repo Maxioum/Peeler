@@ -2,14 +2,10 @@
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
-from pathlib import Path
+from dep_logic.specifiers import parse_version_specifier
 
-from packaging.specifiers import SpecifierSet
-from tomlkit.toml_file import TOMLFile
-
+from peeler.pyproject import _BLENDER_SUPPORTED_PYTHON_VERSION
 from peeler.pyproject.utils import Pyproject
-
-_BLENDER_SUPPORTED_PYTHON_VERSIONS = SpecifierSet(">=3.11,<3.12")
 
 
 def update_requires_python(pyproject: Pyproject) -> Pyproject:
@@ -22,11 +18,11 @@ def update_requires_python(pyproject: Pyproject) -> Pyproject:
     :return: the parsed pyproject
     """
 
-    requires_python = SpecifierSet(
-        str(pyproject.project_table.get("requires-python", ""))
+    requires_python = parse_version_specifier(
+        pyproject.project_table.get("requires-python", "")
     )
 
-    requires_python &= _BLENDER_SUPPORTED_PYTHON_VERSIONS
+    requires_python &= _BLENDER_SUPPORTED_PYTHON_VERSION
 
     pyproject.project_table.update({"requires-python": str(requires_python)})
 
