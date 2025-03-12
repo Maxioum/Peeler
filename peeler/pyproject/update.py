@@ -2,11 +2,11 @@
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
-from packaging.specifiers import SpecifierSet
 
 from peeler.pyproject.parser import PyprojectParser
+from dep_logic.specifiers import parse_version_specifier
 
-_BLENDER_SUPPORTED_PYTHON_VERSIONS = SpecifierSet(">=3.11,<3.12")
+from peeler.pyproject import _BLENDER_SUPPORTED_PYTHON_VERSION
 
 
 def update_requires_python(pyproject: PyprojectParser) -> PyprojectParser:
@@ -19,11 +19,11 @@ def update_requires_python(pyproject: PyprojectParser) -> PyprojectParser:
     :return: the parsed pyproject
     """
 
-    requires_python = SpecifierSet(
-        str(pyproject.project_table.get("requires-python", ""))
+    requires_python = parse_version_specifier(
+        pyproject.project_table.get("requires-python", "")
     )
 
-    requires_python &= _BLENDER_SUPPORTED_PYTHON_VERSIONS
+    requires_python &= _BLENDER_SUPPORTED_PYTHON_VERSION
 
     pyproject.project_table.update({"requires-python": str(requires_python)})
 
