@@ -2,17 +2,14 @@
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
-from pathlib import Path
-
 from packaging.specifiers import SpecifierSet
-from tomlkit.toml_file import TOMLFile
 
-from peeler.pyproject.utils import Pyproject
+from peeler.pyproject.parser import PyprojectParser
 
 _BLENDER_SUPPORTED_PYTHON_VERSIONS = SpecifierSet(">=3.11,<3.12")
 
 
-def update_requires_python(pyproject: Pyproject) -> Pyproject:
+def update_requires_python(pyproject: PyprojectParser) -> PyprojectParser:
     """Update a pyproject file to restrict project supported python version to the versions supported by Blender.
 
     The specifier set will not be resolved, and can lead to contradictions.
