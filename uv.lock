@@ -209,7 +209,7 @@ requires-dist = [
     { name = "rich", specifier = ">=13.9.4" },
     { name = "tomlkit", specifier = ">=0.13.2" },
     { name = "typer", specifier = ">=0.15.1" },
-    { name = "uv", marker = "extra == 'uv'", specifier = "<=0.6.5" },
+    { name = "uv", marker = "extra == 'uv'", specifier = "<=0.6.6" },
     { name = "uv", marker = "extra == 'uv'", specifier = ">=0.5.17" },
     { name = "validate-pyproject", specifier = ">=0.23" },
     { name = "wheel-filename", specifier = ">=1.4.2" },
