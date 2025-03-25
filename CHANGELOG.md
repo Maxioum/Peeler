@@ -54,3 +54,13 @@ Replace requires-python = "==3.11" by requires-python = "==3.11.*" [#30](https:/
 ## [0.2.6]
 
 Update max uv version to 0.6.5 by @github-actions in [#32](https://github.com/Maxioum/Peeler/pull/32)
+
+## [0.2.7]
+
+Add header to README.md
+
+## [0.3.0]
+
+Update max uv version to 0.6.9 by @github-actions in [#38](https://github.com/Maxioum/Peeler/pull/38)
+
+Ensure that the field **project.requires-python** in **pyproject.toml** contains a python version supported by Blender 4.2+ (currently 3.11) see [#25](https://github.com/Maxioum/Peeler/pull/25)
