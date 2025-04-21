@@ -7,15 +7,28 @@ from pathlib import Path
 from subprocess import run
 from typing import Dict, List, Tuple
 
+import typer
 from click import ClickException
 from typer import progressbar
 from wheel_filename import parse_wheel_filename
 
 from peeler.uv_utils import find_uv_bin
 
+_VALID_IMPLEMENTATIONS = {"cp", "py"}
+
 
 def _parse_implementation_and_python_version(python_tag: str) -> Tuple[str, str]:
     return python_tag[:2], python_tag[2:]
+
+
+def _has_valid_implementation(url: str) -> bool:
+    wheel_info = parse_wheel_filename(url)
+
+    return any(
+        _parse_implementation_and_python_version(tag)[0].lower()
+        in _VALID_IMPLEMENTATIONS
+        for tag in wheel_info.python_tags
+    )
 
 
 def _download_from_url(destination_directory: Path, url: str) -> Path:
@@ -85,6 +98,16 @@ def download_wheels(wheels_directory: Path, urls: Dict[str, List[str]]) -> List[
     wheels_paths: List[Path] = []
 
     for package_name, package_urls in urls.items():
+        # filter out python implementations not supported by blender
+        package_urls = list(filter(_has_valid_implementation, package_urls))
+
+        if not package_urls:
+            msg = (
+                f"No suitable implementation found for {package_name}, not downloading."
+            )
+            typer.echo(f"Warning: {msg}")
+            continue
+
         with progressbar(package_urls, label=package_name, color=True) as _package_urls:
             for url in _package_urls:
                 filename = _download_from_url(wheels_directory, url)

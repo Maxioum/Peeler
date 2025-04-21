@@ -1,6 +1,9 @@
 import pytest
 
-from peeler.wheels.download import _parse_implementation_and_python_version
+from peeler.wheels.download import (
+    _parse_implementation_and_python_version,
+    _has_valid_implementation,
+)
 
 
 @pytest.mark.parametrize(
@@ -109,3 +112,51 @@ def test__parse_implementation_and_python_version(
     assert expected_implementation, (
         expected_python_version == _parse_implementation_and_python_version(python_tag)
     )
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-cp310-abi3-macosx_11_0_arm64.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0-py3-abi3-any.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0-py3-abi3-win_amd64.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-py3-abi3-manylinux1_x86_64.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-py3-abi3-macosx_11_0_arm64.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-py3-none-macosx_11_0_arm64.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-py2.py3-abi3-any.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0+cpu-py2.py3-abi3-win_amd64.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0+cpu-py2.py3-abi3-manylinux1_x86_64.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0+cpu-py2.py3-abi3-macosx_11_0_arm64.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1+cpu-py2.py3-none-any.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1+cpu-py2.py3-none-win_amd64.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0+cpu-py2.py3.jy3.ip311-none-manylinux1_x86_64.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-py2.py3.ip3-none-macosx_11_0_arm64.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-cp36.cp37.jy38-abi3-any.whl",
+    ],
+)
+def test__has_valid_implementation(url: str) -> None:
+    assert _has_valid_implementation(url)
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-ip310-abi3-macosx_11_0_arm64.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0-ip3-abi3-any.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0-ip3-abi3-win_amd64.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-ip3-abi3-manylinux1_x86_64.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-jy3-abi3-macosx_11_0_arm64.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-jy3-none-macosx_11_0_arm64.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-jy2.jy3-abi3-any.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0+cpu-ip2.ip3-abi3-win_amd64.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0+cpu-ip2.ip3-abi3-manylinux1_x86_64.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0+cpu-ip2.ip3-abi3-macosx_11_0_arm64.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1+cpu-jy2.jy3-none-any.whl",
+        r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1+cpu-jy2.jy3-none-win_amd64.whl",
+    ],
+)
+def test__has_valid_implementation_invalid(url: str) -> None:
+    assert not _has_valid_implementation(url)
+
+
+
