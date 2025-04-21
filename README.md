@@ -44,6 +44,14 @@ uv pip install peeler
 
 # Features
 
+>Each feature can be used independently.
+
+[Manifest](#Manifest):
+Generate the `blender_manifest.toml` from fields in a `pyproject.toml`.
+
+[Wheels](#Wheels):
+Download the required **wheels** for packaging your add-on based on the dependencies specified in your `pyproject.toml`, automatically write their paths to `blender_manifest.toml`.
+
 ## Manifest
 
 Generate the `blender_manifest.toml` from fields in a `pyproject.toml`.
