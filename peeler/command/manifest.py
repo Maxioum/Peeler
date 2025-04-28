@@ -10,7 +10,7 @@ from typer import Exit
 
 from ..manifest.validate import validate_manifest
 from ..manifest.write import export_to_blender_manifest
-from ..pyproject.parse import ManifestAdapter
+from ..pyproject.manifest_adapter import ManifestAdapter
 from ..pyproject.validator import PyprojectValidator
 from ..schema import blender_manifest_json_schema, peeler_json_schema
 

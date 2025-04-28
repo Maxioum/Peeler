@@ -1,6 +1,6 @@
 import pytest
 
-from peeler.pyproject.parse import ManifestAdapter
+from peeler.pyproject.manifest_adapter import ManifestAdapter
 
 
 @pytest.mark.parametrize(

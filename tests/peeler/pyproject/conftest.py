@@ -7,7 +7,7 @@ from tomlkit import TOMLDocument
 from tomlkit.items import Table
 from tomlkit.toml_file import TOMLFile
 
-from peeler.pyproject.parse import ManifestAdapter
+from peeler.pyproject.manifest_adapter import ManifestAdapter
 from peeler.pyproject.validator import PyprojectValidator
 
 TEST_DATA_DIR = Path(__file__).parent / "data"
