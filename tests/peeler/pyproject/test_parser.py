@@ -1,8 +1,10 @@
 import pytest
 
-from peeler.pyproject.parse import Parser
+from peeler.pyproject.parse import ManifestAdapter
 
 
-@pytest.mark.parametrize("parser", [("pyproject_minimal.toml")], indirect=["parser"])
-def test_parser(parser: Parser) -> None:
-    assert parser.to_blender_manifest()
+@pytest.mark.parametrize(
+    "manifest_adapter", [("pyproject_minimal.toml")], indirect=["manifest_adapter"]
+)
+def test_parser(manifest_adapter: ManifestAdapter) -> None:
+    assert manifest_adapter.to_blender_manifest()

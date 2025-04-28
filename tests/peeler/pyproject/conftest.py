@@ -7,7 +7,7 @@ from tomlkit import TOMLDocument
 from tomlkit.items import Table
 from tomlkit.toml_file import TOMLFile
 
-from peeler.pyproject.parse import Parser
+from peeler.pyproject.parse import ManifestAdapter
 from peeler.pyproject.validator import PyprojectValidator
 
 TEST_DATA_DIR = Path(__file__).parent / "data"
@@ -30,15 +30,15 @@ def validator(request: FixtureRequest) -> PyprojectValidator:
 
 
 @fixture(scope="function")
-def parser(
+def manifest_adapter(
     request: FixtureRequest,
     blender_manifest_schema: Dict[str, Any],
     peeler_manifest_schema: Dict[str, Any],
-) -> Parser:
+) -> ManifestAdapter:
     path: Path = TEST_DATA_DIR / request.param
 
     with path.open() as file:
-        return Parser(
+        return ManifestAdapter(
             tomlkit.load(file), blender_manifest_schema, peeler_manifest_schema
         )
 

@@ -10,7 +10,7 @@ from typer import Exit
 
 from ..manifest.validate import validate_manifest
 from ..manifest.write import export_to_blender_manifest
-from ..pyproject.parse import Parser
+from ..pyproject.parse import ManifestAdapter
 from ..pyproject.validator import PyprojectValidator
 from ..schema import blender_manifest_json_schema, peeler_json_schema
 
@@ -43,9 +43,11 @@ def manifest_command(pyproject_path: Path, blender_manifest_path: Path) -> None:
     validator = PyprojectValidator(pyproject, pyproject_path)
     validator()
 
-    tool = Parser(pyproject, blender_manifest_json_schema(), peeler_json_schema())
+    manifest_adapter = ManifestAdapter(
+        pyproject, blender_manifest_json_schema(), peeler_json_schema()
+    )
 
-    doc = tool.to_blender_manifest()
+    doc = manifest_adapter.to_blender_manifest()
 
     validate_manifest(doc)
 
