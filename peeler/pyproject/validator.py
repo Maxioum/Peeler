@@ -14,7 +14,7 @@ from validate_pyproject.api import Validator as _Validator
 from validate_pyproject.plugins import PluginWrapper
 
 from ..schema import peeler_json_schema
-from .utils import Pyproject
+from .parser import Pyproject
 
 _BLENDER_SUPPORTED_PYTHON_VERSION = RangeSpecifier(
     Version("3.11"), Version("3.12"), include_min=True, include_max=False

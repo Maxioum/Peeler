@@ -10,7 +10,7 @@ from typing import Any, Dict, Set
 
 from tomlkit import TOMLDocument
 
-from .utils import Pyproject
+from .parser import Pyproject
 
 
 class ManifestAdapter:
