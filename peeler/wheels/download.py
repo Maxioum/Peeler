@@ -2,7 +2,7 @@
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
-import os
+from os import fspath
 from pathlib import Path
 from subprocess import run
 from typing import Dict, List, Tuple
@@ -44,7 +44,7 @@ def _download_from_url(destination_directory: Path, url: str) -> Path:
     )
     abi = wheel_info.abi_tags[0]
 
-    _destination_directory = os.fspath(destination_directory.resolve())
+    _destination_directory = fspath(destination_directory.resolve())
     uv_bin = find_uv_bin()
     cmd = [
         uv_bin,

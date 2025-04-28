@@ -42,9 +42,9 @@ def find_uv_bin() -> str:
     """
 
     try:
-        import uv
+        from uv import _find_uv
 
-        uv_bin = uv._find_uv.find_uv_bin()
+        uv_bin = _find_uv.find_uv_bin()
     except (ModuleNotFoundError, FileNotFoundError):
         uv_bin = shutil.which("uv")
 
@@ -82,9 +82,9 @@ def check_uv_version() -> None:
     else:
         from_pip = True
 
-    import peeler
+    from peeler import __name__
 
-    body = f"To use {peeler.__name__} wheels feature uv version must be between {MIN_UV_VERSION} and {MAX_UV_VERSION}"
+    body = f"To use {__name__} wheels feature uv version must be between {MIN_UV_VERSION} and {MAX_UV_VERSION}"
 
     if from_pip:
         update_uv = """Install peeler with a supported uv version:
@@ -104,8 +104,6 @@ uvx peeler[uv] [OPTIONS] COMMAND [ARGS]"""
 {update_uv}""")
 
     if uv_version > MAX_UV_VERSION or uv_version < MIN_UV_VERSION:
-        import peeler
-
         header = f"uv version is {uv_version}"
 
         raise ClickException(f"""{header}
