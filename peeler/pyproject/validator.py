@@ -26,8 +26,10 @@ def _peeler_plugin(peeler: str) -> Dict[str, Any]:
     return {"$id": json_schema["$schema"][:-1], **json_schema}
 
 
-class Validator:
+class PyprojectValidator:
     """A tool to validate a pyproject.
+
+    Validate a pyproject file against standard and peeler own fields.
 
     :param pyproject: the pyproject as a `TOMLDocument`
     :param pyproject_path: the pyproject path (for error reporting)
@@ -70,7 +72,7 @@ class Validator:
         """
         table = Pyproject(pyproject).project_table
 
-        if (python_versions := table.get("requires-python", None)) is None:
+        if (python_versions := table.get("requires-python")) is None:
             return pyproject
 
         version_specifier = parse_version_specifier(python_versions)
@@ -98,7 +100,7 @@ class Validator:
 
         return pyproject
 
-    def validate(self) -> None:
+    def __call__(self) -> None:
         """Validate the file as generic pyproject file, and for peeler purposes.
 
         :raises ValidationError: on invalid pyproject file.
