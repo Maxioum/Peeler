@@ -21,7 +21,7 @@ _BLENDER_SUPPORTED_PYTHON_VERSION = RangeSpecifier(
 )
 
 
-def _peeler_plugin(peeler: str) -> Dict[str, Any]:
+def _peeler_plugin(_: str) -> Dict[str, Any]:
     json_schema = peeler_json_schema()
     return {"$id": json_schema["$schema"][:-1], **json_schema}
 
