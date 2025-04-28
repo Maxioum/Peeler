@@ -14,7 +14,7 @@ from validate_pyproject.api import Validator as _Validator
 from validate_pyproject.plugins import PluginWrapper
 
 from ..schema import peeler_json_schema
-from .parser import Pyproject
+from .parser import PyprojectParser
 
 _BLENDER_SUPPORTED_PYTHON_VERSION = RangeSpecifier(
     Version("3.11"), Version("3.12"), include_min=True, include_max=False
@@ -47,7 +47,7 @@ class PyprojectValidator:
         :return: the pyproject document
         """
 
-        table = Pyproject(pyproject).peeler_table
+        table = PyprojectParser(pyproject).peeler_table
 
         if table:
             return pyproject
@@ -70,7 +70,7 @@ class PyprojectValidator:
         :raises JsonSchemaValueException: on invalid python versions.
         :return: the pyproject document
         """
-        table = Pyproject(pyproject).project_table
+        table = PyprojectParser(pyproject).project_table
 
         if (python_versions := table.get("requires-python")) is None:
             return pyproject

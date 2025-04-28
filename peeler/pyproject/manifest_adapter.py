@@ -10,7 +10,7 @@ from typing import Any, Dict, Set
 
 from tomlkit import TOMLDocument
 
-from .parser import Pyproject
+from .parser import PyprojectParser
 
 
 class ManifestAdapter:
@@ -27,7 +27,7 @@ class ManifestAdapter:
         blender_manifest_jsonschema: Dict[str, Any],
         peeler_jsonschema: Dict[str, Any],
     ) -> None:
-        self.pyproject = Pyproject(pyproject)
+        self.pyproject = PyprojectParser(pyproject)
         self.blender_manifest_jsonschema = blender_manifest_jsonschema
         self.peeler_jsonschema = peeler_jsonschema
 
