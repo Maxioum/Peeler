@@ -4,17 +4,17 @@
 
 from __future__ import annotations
 
-from functools import partial
-from typing import Dict, Any, Set
 from collections.abc import Callable
+from functools import partial
+from typing import Any, Dict, Set
 
 from tomlkit import TOMLDocument
 
-from .utils import Pyproject
+from .parser import PyprojectParser
 
 
-class Parser:
-    """A tool to parse a TOML Document representing a pyproject into a TOML Document representing a blender manifest.
+class ManifestAdapter:
+    """A tool to adapt a TOML Document representing a pyproject into a TOML Document representing a blender manifest.
 
     :param pyproject: the pyproject to extract values from.
     :param blender_manifest_jsonschema: the blender manifest json schema, specifying required fields etc.
@@ -27,7 +27,7 @@ class Parser:
         blender_manifest_jsonschema: Dict[str, Any],
         peeler_jsonschema: Dict[str, Any],
     ) -> None:
-        self.pyproject = Pyproject(pyproject)
+        self.pyproject = PyprojectParser(pyproject)
         self.blender_manifest_jsonschema = blender_manifest_jsonschema
         self.peeler_jsonschema = peeler_jsonschema
 
@@ -84,7 +84,7 @@ class Parser:
         ]
 
         property_: Dict[str, Any] = properties[property_name]
-        default_value = property_.get("default", None)
+        default_value = property_.get("default")
 
         if default_value is None:
             raise RuntimeError(
@@ -120,7 +120,7 @@ class Parser:
         if self._strictly_required_fields:
             header = "Missing field in [peeler.manifest] table:"
             missing_properties = {
-                f'{field}:\n\t{self.blender_manifest_jsonschema["properties"]["description"]}'
+                f"{field}:\n\t{self.blender_manifest_jsonschema['properties']['description']}"
                 for field in self._strictly_required_fields
             }
             msg = header + r"\n".join(missing_properties)

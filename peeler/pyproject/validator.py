@@ -14,20 +14,22 @@ from validate_pyproject.api import Validator as _Validator
 from validate_pyproject.plugins import PluginWrapper
 
 from ..schema import peeler_json_schema
-from .utils import Pyproject
+from .parser import PyprojectParser
 
 _BLENDER_SUPPORTED_PYTHON_VERSION = RangeSpecifier(
     Version("3.11"), Version("3.12"), include_min=True, include_max=False
 )
 
 
-def _peeler_plugin(peeler: str) -> Dict[str, Any]:
+def _peeler_plugin(_: str) -> Dict[str, Any]:
     json_schema = peeler_json_schema()
     return {"$id": json_schema["$schema"][:-1], **json_schema}
 
 
-class Validator:
+class PyprojectValidator:
     """A tool to validate a pyproject.
+
+    Validate a pyproject file against standard and peeler own fields.
 
     :param pyproject: the pyproject as a `TOMLDocument`
     :param pyproject_path: the pyproject path (for error reporting)
@@ -45,7 +47,7 @@ class Validator:
         :return: the pyproject document
         """
 
-        table = Pyproject(pyproject).peeler_table
+        table = PyprojectParser(pyproject).peeler_table
 
         if table:
             return pyproject
@@ -68,9 +70,9 @@ class Validator:
         :raises JsonSchemaValueException: on invalid python versions.
         :return: the pyproject document
         """
-        table = Pyproject(pyproject).project_table
+        table = PyprojectParser(pyproject).project_table
 
-        if (python_versions := table.get("requires-python", None)) is None:
+        if (python_versions := table.get("requires-python")) is None:
             return pyproject
 
         version_specifier = parse_version_specifier(python_versions)
@@ -98,7 +100,7 @@ class Validator:
 
         return pyproject
 
-    def validate(self) -> None:
+    def __call__(self) -> None:
         """Validate the file as generic pyproject file, and for peeler purposes.
 
         :raises ValidationError: on invalid pyproject file.

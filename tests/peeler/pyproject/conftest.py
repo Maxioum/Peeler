@@ -7,8 +7,8 @@ from tomlkit import TOMLDocument
 from tomlkit.items import Table
 from tomlkit.toml_file import TOMLFile
 
-from peeler.pyproject.parse import Parser
-from peeler.pyproject.validator import Validator
+from peeler.pyproject.manifest_adapter import ManifestAdapter
+from peeler.pyproject.validator import PyprojectValidator
 
 TEST_DATA_DIR = Path(__file__).parent / "data"
 
@@ -22,28 +22,29 @@ def pyproject(request: FixtureRequest) -> TOMLDocument:
 
 
 @fixture
-def validator(request: FixtureRequest) -> Validator:
+def validator(request: FixtureRequest) -> PyprojectValidator:
     path: Path = TEST_DATA_DIR / request.param
 
     with path.open() as file:
-        return Validator(tomlkit.load(file), path)
+        return PyprojectValidator(tomlkit.load(file), path)
 
 
 @fixture(scope="function")
-def parser(
+def manifest_adapter(
     request: FixtureRequest,
     blender_manifest_schema: Dict[str, Any],
     peeler_manifest_schema: Dict[str, Any],
-) -> Parser:
+) -> ManifestAdapter:
     path: Path = TEST_DATA_DIR / request.param
 
     with path.open() as file:
-        return Parser(
+        return ManifestAdapter(
             tomlkit.load(file), blender_manifest_schema, peeler_manifest_schema
         )
 
+
 @fixture(scope="function")
-def validator_requires_python(request: FixtureRequest) -> Validator:
+def validator_requires_python(request: FixtureRequest) -> PyprojectValidator:
     path: Path = TEST_DATA_DIR / "pyproject_minimal.toml"
 
     document = TOMLFile(path).read()
@@ -52,5 +53,4 @@ def validator_requires_python(request: FixtureRequest) -> Validator:
 
     project_table.update({"requires-python": request.param})
 
-    return Validator(document, path)
-
+    return PyprojectValidator(document, path)

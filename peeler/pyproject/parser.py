@@ -6,8 +6,8 @@ from tomlkit import TOMLDocument
 from tomlkit.items import Table
 
 
-class Pyproject:
-    """A class to fetch values from a `pyproject.toml` with a peeler tool table.
+class PyprojectParser:
+    """A class to parse values from a `pyproject.toml` with a peeler tool table.
 
     :param document: The TOML document representing the `pyproject.toml` file.
     """

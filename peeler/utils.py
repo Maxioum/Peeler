@@ -52,12 +52,12 @@ Should be named : `{PYPROJECT_FILENAME}` not `{pyproject_path.name}`
 def restore_file(
     filepath: Path, *, missing_ok: bool = False
 ) -> Generator[None, None, None]:
-    """Context Manager to ensure that a file contents and metadata is restored after use.
+    """Context Manager to ensure that a file contents and metadata are restored after use.
 
     The file must NOT be opened before calling `restore_file`
 
     :param filepath: The path of the file
-    :param missing_ok: if set to True and the file is does not exist, delete the file after use.
+    :param missing_ok: if set to True and the file does not exist, delete the file after use.
     :raises FileNotFoundError: if missing_ok is False and the file does not exist
     """
 

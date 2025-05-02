@@ -3,17 +3,16 @@
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
 from pathlib import Path
+
 import tomlkit
-
-from typer import Exit
 from rich import print
+from typer import Exit
 
-from ..pyproject.validator import Validator
-from ..pyproject.parse import Parser
-from ..schema import peeler_json_schema, blender_manifest_json_schema
 from ..manifest.validate import validate_manifest
 from ..manifest.write import export_to_blender_manifest
-
+from ..pyproject.manifest_adapter import ManifestAdapter
+from ..pyproject.validator import PyprojectValidator
+from ..schema import blender_manifest_json_schema, peeler_json_schema
 
 PYPROJECT_FILENAME = "pyproject.toml"
 
@@ -41,11 +40,14 @@ def manifest_command(pyproject_path: Path, blender_manifest_path: Path) -> None:
     with Path(pyproject_path).open() as file:
         pyproject = tomlkit.load(file)
 
-    Validator(pyproject, pyproject_path).validate()
+    validator = PyprojectValidator(pyproject, pyproject_path)
+    validator()
 
-    tool = Parser(pyproject, blender_manifest_json_schema(), peeler_json_schema())
+    manifest_adapter = ManifestAdapter(
+        pyproject, blender_manifest_json_schema(), peeler_json_schema()
+    )
 
-    doc = tool.to_blender_manifest()
+    doc = manifest_adapter.to_blender_manifest()
 
     validate_manifest(doc)
 
