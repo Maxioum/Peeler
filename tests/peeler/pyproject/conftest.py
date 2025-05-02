@@ -8,6 +8,7 @@ from tomlkit.items import Table
 from tomlkit.toml_file import TOMLFile
 
 from peeler.pyproject.manifest_adapter import ManifestAdapter
+from peeler.pyproject.parser import PyprojectParser
 from peeler.pyproject.validator import PyprojectValidator
 
 TEST_DATA_DIR = Path(__file__).parent / "data"
@@ -15,10 +16,10 @@ PYPROJECT_MINIMAL = TEST_DATA_DIR / "pyproject_no_peeler_table.toml"
 
 
 @fixture
-def pyproject_requires_python(request: FixtureRequest) -> PyprojectValidator:
+def pyproject_requires_python(request: FixtureRequest) -> PyprojectParser:
     key = "requires-python"
 
-    pyproject = PyprojectValidator(TOMLFile(PYPROJECT_MINIMAL).read())
+    pyproject = PyprojectParser(TOMLFile(PYPROJECT_MINIMAL).read())
 
     requires_python: str | None = request.param
 
