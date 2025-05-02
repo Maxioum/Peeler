@@ -25,7 +25,7 @@ def get_uv_bin_version(uv_bin: PathLike) -> Version | None:
 
     uv_bin = fspath(uv_bin)
 
-    result = run([uv_bin, "version"], capture_output=True, text=True, check=True)
+    result = run([uv_bin, "self", "version"], capture_output=True, text=True, check=True)
     output = result.stdout.strip()
     match = re.search(version_regex, output)
 
@@ -66,7 +66,7 @@ def get_uv_version() -> Version | None:
 
 
 def check_uv_version() -> None:
-    """Check the current uv version is between 0.5.17 and current supported max uv version.
+    """Check the current uv version is between 0.7.0 and current supported max uv version.
 
     See .max-uv-version or pyproject.toml files.
 

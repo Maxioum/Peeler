@@ -1,28 +1,22 @@
-from collections.abc import Generator
-from typing import Any
 from unittest import mock
 from unittest.mock import MagicMock, Mock
 
 import pytest
 from click import ClickException
-from pytest import fixture
 
-from peeler import uv_utils
-from peeler.uv_utils import check_uv_version, find_uv_bin
+from peeler.uv_utils import check_uv_version
 
 
-@fixture(autouse=True)
-def patch_find_uv_bin() -> Generator[None, Any, None]:
-    with mock.patch(
-        f"{uv_utils.__name__}.{find_uv_bin.__name__}",
-        return_value="uv",
-    ) as find_uv_bin_mock:
-        yield
+def test_check_uv_version() -> None:
+    try:
+        check_uv_version()
+    except ClickException as e:
+        pytest.fail(f"Should not raise a ClickException: {e.message}")
 
 
 @pytest.mark.parametrize(
     "run_stdout",
-    ["uv 0.5.17 (c198e2233 2025-01-10)", "uv 0.5.24 (42fae925c 2025-01-23)"],
+    ["uv 0.7.2 (481d05d8d 2025-04-30)"],
 )
 @mock.patch("peeler.uv_utils.run")
 def test_check_uv_version_valid(mock_run: Mock, run_stdout: str) -> None:
@@ -43,3 +37,5 @@ def test_check_uv_version_raises(mock_run: Mock, run_stdout: str) -> None:
     mock_run.return_value = mock_stdout
     with pytest.raises(ClickException):
         check_uv_version()
+
+
