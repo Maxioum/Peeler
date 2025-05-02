@@ -14,8 +14,7 @@ See [first-contribution](https://github.com/firstcontributions/first-contributio
 - Fork this repository
 - Clone the repository see [Getting Started](#getting-started)
 - Make necessary changes and commit those changes.
-- Update the [CHANGELOG.md](CHANGELOG.md) with details of changes. The changelog scheme we use is [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
-- If needed, increase the version numbers in pyproject.toml and CHANGELOG.md to the new version that this Pull Request would represent. The versioning scheme we use is [SemVer](http://semver.org/).
+- If needed, increase the version numbers in pyproject.toml to the new version that this Pull Request would represent. The versioning scheme we use is [SemVer](http://semver.org/).
 - Wait until the success of the CICD pipeline
 - Make sure your branch is rebased onto the destination branch.
 - You may request the reviewer to merge it for you.

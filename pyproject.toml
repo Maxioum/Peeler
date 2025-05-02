@@ -35,7 +35,7 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/Maxioum/Peeler"
 Repository = "https://github.com/Maxioum/Peeler.git"
-Changelog = "https://github.com/Maxioum/Peeler/blob/main/CHANGELOG.md"
+Changelog = "https://github.com/Maxioum/Peeler/releases"
 Issues = "https://github.com/Maxioum/Peeler/issues"
 
 [project.scripts]
