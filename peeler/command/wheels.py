@@ -11,7 +11,7 @@ from click.exceptions import ClickException
 from tomlkit.toml_file import TOMLFile
 
 from peeler.pyproject.update import update_requires_python
-from peeler.pyproject.utils import Pyproject
+from peeler.pyproject.parser import PyprojectParser
 from peeler.utils import find_pyproject_file, restore_file
 from peeler.uv_utils import check_uv_version
 from peeler.wheels.download import download_wheels
@@ -147,7 +147,7 @@ def wheels_command(
     # to download only supported wheels by blender
     with restore_file(pyproject_file):
         file = TOMLFile(pyproject_file)
-        pyproject = Pyproject(file.read())
+        pyproject = PyprojectParser(file.read())
         pyproject = update_requires_python(pyproject)
         file.write(pyproject._document)
 
