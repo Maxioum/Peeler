@@ -1,8 +1,8 @@
 import pytest
 
 from peeler.wheels.download import (
-    _parse_implementation_and_python_version,
     _has_valid_implementation,
+    _parse_implementation_and_python_version,
 )
 
 
@@ -109,9 +109,10 @@ from peeler.wheels.download import (
 def test__parse_implementation_and_python_version(
     python_tag: str, expected_implementation: str, expected_python_version: str
 ) -> None:
-    assert expected_implementation, (
-        expected_python_version == _parse_implementation_and_python_version(python_tag)
-    )
+    assert (
+        expected_implementation,
+        expected_python_version,
+    ) == _parse_implementation_and_python_version(python_tag)
 
 
 @pytest.mark.parametrize(
@@ -157,6 +158,3 @@ def test__has_valid_implementation(url: str) -> None:
 )
 def test__has_valid_implementation_invalid(url: str) -> None:
     assert not _has_valid_implementation(url)
-
-
-
