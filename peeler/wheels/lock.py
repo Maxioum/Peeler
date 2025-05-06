@@ -2,30 +2,37 @@
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
+import re
+from abc import ABC, abstractmethod
+from collections import OrderedDict
 from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 from subprocess import run
-from typing import Dict, List
+from typing import Dict, List, Type
 
+from click import ClickException, format_filename
 from tomlkit import TOMLDocument
 from tomlkit.toml_file import TOMLFile
 
+from peeler.pyproject.parser import PyprojectParser
+from peeler.pyproject.update import update_requires_python
 from peeler.utils import restore_file
-from peeler.uv_utils import find_uv_bin
+from peeler.uv_utils import check_uv_version, find_uv_bin
 
-LOCK_FILE = "uv.lock"
-
-
-def _get_lock_path(pyproject_file: Path) -> Path:
-    return Path(pyproject_file).parent / LOCK_FILE
+UV_LOCK_FILE = "uv.lock"
 
 
 @contextmanager
-def _get_lock_file(pyproject_file: Path) -> Generator[Path, None, None]:
+def _generate_uv_lock(pyproject_file: Path) -> Generator[Path, None, None]:
+    """Generate or update a uv.lock file from a pyproject.toml files.
+
+    :param pyproject_file: the pyproject filepath
+    :yield: the lock file path
+    """
     uv_bin = find_uv_bin()
 
-    lock_path = _get_lock_path(pyproject_file)
+    lock_path = Path(pyproject_file).parent / UV_LOCK_FILE
 
     with restore_file(lock_path, missing_ok=True):
         run(
@@ -45,6 +52,14 @@ def _get_lock_file(pyproject_file: Path) -> Generator[Path, None, None]:
 
 
 def _get_wheels_urls_from_lock(lock_toml: TOMLDocument) -> Dict[str, List[str]]:
+    """Retrieve wheels url from a toml.
+
+    uv.lock and pylock types are supported.
+
+    :param lock_toml: the uv.lock or pylock file
+    :return: A mapping from package to a list of url.
+    """
+
     urls: Dict[str, List[str]] = {}
 
     if (packages := lock_toml.get("package", None)) is None:
@@ -59,15 +74,168 @@ def _get_wheels_urls_from_lock(lock_toml: TOMLDocument) -> Dict[str, List[str]]:
     return urls
 
 
-def get_wheels_url(pyproject_file: Path) -> Dict[str, List[str]]:
-    """Return a Dict containing wheels urls from a pyproject.toml dependencies table.
+class AbstractURLFetcherStrategy(ABC):
+    """Abstract base class for strategies that fetch URLs from a file.
 
-    :param pyproject_file: the pyproject file.
-    :return: A Dict with package name as key and a list of package urls as values.
+    This class defines the structure for URL fetcher strategies that parse or retrieve
+    URLs from a specified file.
+
+    :param path: Path to the file where the URLs to be parsed or retrieved are.
     """
 
-    with _get_lock_file(pyproject_file) as lock_file:
-        # open lock file to retrieve wheels url for all platform
-        lock_toml = TOMLFile(lock_file).read()
+    def __init__(self, path: Path) -> None:
+        pass
 
-    return _get_wheels_urls_from_lock(lock_toml)
+    @abstractmethod
+    def get_urls(self) -> Dict[str, List[str]]:
+        """Fetch and return URLs determined from the file.
+
+        The method should return a mapping where each key is a package name, and each
+        value is a list of wheel URLs associated with that package.
+
+        :return: A dictionary mapping package names to a list of URLs.
+        """
+
+        raise NotImplementedError
+
+
+class UVLockUrlFetcher(AbstractURLFetcherStrategy):
+    """URL fetcher that extracts wheel URLs from a uv.lock file.
+
+    Parses the given uv.lock file and retrieves a list of wheel URLs for each package
+    listed in the lock file.
+
+    :param uv_lock: Path to the uv.lock file to extract wheel url from.
+    """
+
+    def __init__(self, uv_lock: Path) -> None:
+        self.uv_lock = uv_lock
+
+    def get_urls(self) -> Dict[str, List[str]]:
+        """Extract wheel URLs from the uv.lock file.
+
+        Parses the uv.lock file and returns a mapping of package names to lists
+        of wheel URLs.
+
+        :return: Dictionary with package names as keys and lists of wheel URLs as values.
+        """
+
+        lock_toml = TOMLFile(self.uv_lock).read()
+        return _get_wheels_urls_from_lock(lock_toml)
+
+
+class PyprojectUVLockFetcher(AbstractURLFetcherStrategy):
+    """URL fetcher that retrieves wheel URLs from a pyproject.toml file.
+
+    Temporarily modifies the pyproject.toml file to restrict dependencies to a
+    Blender-compatible environment, generates a uv.lock file, and extracts the
+    corresponding wheel URLs for each package.
+
+    :param pyproject: Path to the pyproject.toml file to process.
+    """
+
+    def __init__(self, pyproject: Path):
+        self.pyproject = pyproject
+
+    def get_urls(self) -> Dict[str, List[str]]:
+        """Extract wheel URLs from the dependencies listed in pyproject.toml.
+
+        This method temporarily adjusts the pyproject file to ensure compatibility,
+        generates a uv.lock file using `uv`, and parses it to collect URLs of
+        downloadable wheels for each package.
+
+        :return: Dictionary with package names as keys and lists of wheel URLs as values.
+        """
+
+        check_uv_version()
+
+        # Temporarily modify the pyproject file to restrict to Blender-supported wheels
+        with restore_file(self.pyproject):
+            file = TOMLFile(self.pyproject)
+            pyproject = PyprojectParser(file.read())
+            pyproject = update_requires_python(pyproject)
+            file.write(pyproject._document)
+
+            # Generate a uv.lock file and extract wheel URLs
+            with _generate_uv_lock(self.pyproject) as uv_lock:
+                return _get_wheels_urls_from_lock(uv_lock)
+
+
+class PylockUrlFetcher(AbstractURLFetcherStrategy):
+    """URL fetcher that extracts wheel URLs from a pylock like file.
+
+    Parses the given pylock file and retrieves a list of wheel URLs for
+    each package listed in the lock file.
+
+    :param pylock: Path to the pylock file.
+    """
+
+    def __init__(self, pylock: Path):
+        self.pylock = pylock
+
+    def get_urls(self) -> Dict[str, List[str]]:
+        """Extract wheel URLs from the pylock file.
+
+        :return: Dictionary with package names as keys and lists of wheel URLs as values.
+        """
+
+        pylock_toml = TOMLFile(self.pylock).read()
+        return _get_wheels_urls_from_lock(pylock_toml)
+
+
+class UrlFetcherCreator:
+    """Factory class to select the appropriate URL fetcher strategy based on the file name.
+
+    This class inspects a given path (file or directory) and determines which
+    URL fetcher strategy to use, depending on the presence of known files such as
+    `pylock.toml` or `pylock.*.toml`, `pyproject.toml`, or `uv.lock`.
+
+    The matching is based on regular expressions, evaluated in the declared order.
+
+    :param path: Path to a file or a directory containing lock/config files.
+    """
+
+    # The order of patterns matters (checked top to bottom)
+    regexes_to_strategy: OrderedDict[str, Type[AbstractURLFetcherStrategy]] = (
+        OrderedDict(
+            {
+                r"^pylock.toml$": PylockUrlFetcher,
+                r"^pylock\.[^.]+\.toml$": PylockUrlFetcher,
+                r"^pyproject\.toml$": PyprojectUVLockFetcher,
+                r"^uv\.lock$": UVLockUrlFetcher,
+            }
+        )
+    )
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+
+    def get_fetch_url_strategy(self) -> AbstractURLFetcherStrategy:
+        """Select and return the appropriate URL fetcher strategy based on the given file or directory.
+
+        If the path is a file, check whether it matches one of the known patterns.
+        If the path is a directory, look for (in order): a pylock file, uv.lock, then pyproject.toml.
+
+        :return: Instance of a subclass of AbstractURLFetcherStrategy.
+        :raises ClickException: If no matching file is found.
+        """
+
+        files = (self.path,) if not self.path.is_dir() else self.path.iterdir()
+
+        for filepath in files:
+            for regex, strategy in self.regexes_to_strategy.items():
+                if re.match(regex, filepath.name):
+                    return strategy(filepath)
+
+        if self.path.is_dir():
+            msg = f"No supported file found in {format_filename(self.path.resolve())}."
+        else:
+            msg = f"The file {format_filename(self.path.resolve())} is not a supported type."
+
+        raise ClickException(
+            f"{msg}\n"
+            f"Expected one of the following:\n"
+            f"  - pylock.toml or pylock.*.toml\n"
+            f"  - uv.lock\n"
+            f"  - pyproject.toml"
+        )
