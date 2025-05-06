@@ -84,7 +84,7 @@ def check_uv_version() -> None:
 
     from peeler import __name__
 
-    body = f"To use {__name__} wheels feature uv version must be between {MIN_UV_VERSION} and {MAX_UV_VERSION}"
+    body = f"To use {__name__} wheels feature with a pyproject.toml uv version must be between {MIN_UV_VERSION} and {MAX_UV_VERSION}"
 
     if from_pip:
         update_uv = """Install peeler with a supported uv version:

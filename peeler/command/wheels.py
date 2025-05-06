@@ -10,12 +10,8 @@ from click import format_filename
 from click.exceptions import ClickException
 from tomlkit.toml_file import TOMLFile
 
-from peeler.pyproject.update import update_requires_python
-from peeler.pyproject.parser import PyprojectParser
-from peeler.utils import find_pyproject_file, restore_file
-from peeler.uv_utils import check_uv_version
 from peeler.wheels.download import download_wheels
-from peeler.wheels.lock import get_wheels_url
+from peeler.wheels.lock import UrlFetcherCreator
 
 PYPROJECT_FILENAME = "pyproject.toml"
 
@@ -126,32 +122,20 @@ def write_wheels_path(blender_manifest_path: Path, wheels_paths: List[Path]) -> 
 
 
 def wheels_command(
-    pyproject_file: Path, blender_manifest_file: Path, wheels_directory: Path | None
+    path: Path, blender_manifest_file: Path, wheels_directory: Path | None
 ) -> None:
     """Download wheel from pyproject dependency and write their paths to the blender manifest.
 
-    :param pyproject_file: The pyproject file.
+    :param file: The pyproject / uv.lock / pylock file or directory.
     :param blender_manifest_file: the blender manifest file
     :param wheels_directory: the directory to download wheels into.
     """
-
-    check_uv_version()
-
-    pyproject_file = find_pyproject_file(pyproject_file, allow_non_default_name=False)
 
     wheels_directory = _resolve_wheels_dir(
         wheels_directory, blender_manifest_file, allow_non_default_name=True
     )
 
-    # temporary modify pyproject file
-    # to download only supported wheels by blender
-    with restore_file(pyproject_file):
-        file = TOMLFile(pyproject_file)
-        pyproject = PyprojectParser(file.read())
-        pyproject = update_requires_python(pyproject)
-        file.write(pyproject._document)
-
-        urls = get_wheels_url(pyproject_file)
+    urls = UrlFetcherCreator(path).get_fetch_url_strategy().get_urls()
 
     wheels_paths = download_wheels(wheels_directory, urls)
 
