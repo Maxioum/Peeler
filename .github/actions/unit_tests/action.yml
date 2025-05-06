@@ -36,6 +36,11 @@ runs:
     shell: bash
     run: uv sync --all-extras --dev --no-extra uv
 
+  - name: Static Type Check
+    shell: bash
+    id: mypy
+    run: uvx mypy .
+
   - name: Run unit tests
     shell: bash
     id: run_tests
