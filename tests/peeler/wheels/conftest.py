@@ -2,8 +2,10 @@ import shutil
 from pathlib import Path
 
 import tomlkit
-from pytest import fixture
+from pytest import FixtureRequest, fixture
 from tomlkit import TOMLDocument
+
+from peeler.wheels.lock import UrlFetcherCreator
 
 TEST_DATA_DIR = Path(__file__).parent / "data"
 TEST_PYPROJECT = TEST_DATA_DIR / "pyproject.toml"
@@ -26,3 +28,9 @@ def pyproject_path_with_lock(tmp_path: Path) -> Path:
 @fixture
 def pyproject_path_without_lock(tmp_path: Path) -> Path:
     return shutil.copy2(TEST_PYPROJECT, tmp_path / TEST_PYPROJECT.name)
+
+
+
+@fixture
+def url_fetcher_creator(request: FixtureRequest) -> UrlFetcherCreator:
+    return UrlFetcherCreator(request.param)
