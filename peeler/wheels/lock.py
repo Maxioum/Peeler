@@ -51,12 +51,10 @@ def _generate_uv_lock(pyproject_file: Path) -> Generator[Path, None, None]:
         yield lock_path
 
 
-def _get_wheels_urls_from_lock(lock_toml: TOMLDocument) -> Dict[str, List[str]]:
-    """Retrieve wheels url from a toml.
+def _get_wheels_urls_from_uv_lock(lock_toml: TOMLDocument) -> Dict[str, List[str]]:
+    """Retrieve wheels url from a uv.lock toml.
 
-    uv.lock and pylock types are supported.
-
-    :param lock_toml: the uv.lock or pylock file
+    :param lock_toml: the uv.lock file
     :return: A mapping from package to a list of url.
     """
 
@@ -73,6 +71,25 @@ def _get_wheels_urls_from_lock(lock_toml: TOMLDocument) -> Dict[str, List[str]]:
 
     return urls
 
+def _get_wheels_urls_from_pylock(lock_toml: TOMLDocument) -> Dict[str, List[str]]:
+    """Retrieve wheels url from a pylock toml.
+
+    :param lock_toml: the pylock file
+    :return: A mapping from package to a list of url.
+    """
+
+    urls: Dict[str, List[str]] = {}
+
+    if (packages := lock_toml.get("packages", None)) is None:
+        return {}
+
+    for package in packages:
+        if "wheels" not in package:
+            continue
+
+        urls[package["name"]] = [wheels["url"] for wheels in package["wheels"]]
+
+    return urls
 
 class AbstractURLFetcherStrategy(ABC):
     """Abstract base class for strategies that fetch URLs from a file.
@@ -121,7 +138,7 @@ class UVLockUrlFetcher(AbstractURLFetcherStrategy):
         """
 
         lock_toml = TOMLFile(self.uv_lock).read()
-        return _get_wheels_urls_from_lock(lock_toml)
+        return _get_wheels_urls_from_uv_lock(lock_toml)
 
 
 class PyprojectUVLockFetcher(AbstractURLFetcherStrategy):
@@ -158,7 +175,8 @@ class PyprojectUVLockFetcher(AbstractURLFetcherStrategy):
 
             # Generate a uv.lock file and extract wheel URLs
             with _generate_uv_lock(self.pyproject) as uv_lock:
-                return _get_wheels_urls_from_lock(uv_lock)
+                uv_lock_toml = TOMLFile(uv_lock).read()
+                return _get_wheels_urls_from_uv_lock(uv_lock_toml)
 
 
 class PylockUrlFetcher(AbstractURLFetcherStrategy):
@@ -180,7 +198,7 @@ class PylockUrlFetcher(AbstractURLFetcherStrategy):
         """
 
         pylock_toml = TOMLFile(self.pylock).read()
-        return _get_wheels_urls_from_lock(pylock_toml)
+        return _get_wheels_urls_from_pylock(pylock_toml)
 
 
 class UrlFetcherCreator:
