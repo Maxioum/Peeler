@@ -13,8 +13,14 @@ TEST_LOCK = TEST_DATA_DIR / "uv.lock"
 
 
 @fixture
-def lock_file() -> TOMLDocument:
-    path: Path = TEST_DATA_DIR / "lock_file.lock"
+def uv_lock_file() -> TOMLDocument:
+    path: Path = TEST_DATA_DIR / "lock_file_uv.toml"
+    with path.open() as file:
+        return tomlkit.load(file)
+
+@fixture
+def pylock_file() -> TOMLDocument:
+    path: Path = TEST_DATA_DIR / "lock_file_pylock.toml"
     with path.open() as file:
         return tomlkit.load(file)
 
