@@ -42,6 +42,8 @@ def _generate_uv_lock(pyproject_file: Path) -> Generator[Path, None, None]:
                 "--directory",
                 pyproject_file.parent,
                 "lock",
+                "--python",
+                "3.11",
                 "--no-build",
             ],
             cwd=pyproject_file.parent,
