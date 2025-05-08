@@ -41,7 +41,6 @@ def _generate_uv_lock(pyproject_file: Path) -> Generator[Path, None, None]:
                 "--no-config",
                 "--directory",
                 pyproject_file.parent,
-                "--no-python-downloads",
                 "lock",
                 "--no-build",
             ],
