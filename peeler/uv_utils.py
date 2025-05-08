@@ -10,6 +10,7 @@ from subprocess import run
 
 from click import ClickException
 from packaging.version import Version
+from typing import Literal, overload
 
 from peeler import MAX_UV_VERSION, MIN_UV_VERSION
 
@@ -35,7 +36,19 @@ def get_uv_bin_version(uv_bin: PathLike) -> Version | None:
     return Version(match.group(0))
 
 
+@overload
 def find_uv_bin() -> str:
+    ...
+
+@overload
+def find_uv_bin(raises: Literal[True]) -> str:
+    ...
+
+@overload
+def find_uv_bin(raises: Literal[False]) -> str | None:
+    ...
+
+def find_uv_bin(raises: bool = True) -> str | None:
     """Return the path to the uv bin.
 
     :raises ClickException: if the bin cannot be found.
@@ -44,21 +57,30 @@ def find_uv_bin() -> str:
     try:
         from uv import _find_uv
 
-        uv_bin = _find_uv.find_uv_bin()
+        uv_bin: str | None = _find_uv.find_uv_bin()
     except (ModuleNotFoundError, FileNotFoundError):
         uv_bin = shutil.which("uv")
 
-    if uv_bin is None:
+    if raises and uv_bin is None:
         raise ClickException(
             f"""Cannot find uv bin
 Install uv `https://astral.sh/blog/uv` or
-Install peeler optional dependency uv (eg: pip install peeler[uv])
+Install peeler with uv (eg: pip install peeler[uv])
 """
         )
 
     return uv_bin
 
 
+def has_uv() -> bool:
+    """Return whether uv is present on the system.
+
+    :return: True if uv is found, False otherwise.
+    """
+    
+    return find_uv_bin(raises=False) is not None
+        
+        
 def get_uv_version() -> Version | None:
     """Return uv version."""
 
