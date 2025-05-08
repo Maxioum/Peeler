@@ -1,10 +1,21 @@
 from pathlib import Path
-from typing import Dict, List, Set, Type
+from typing import Set, Type
 
+import pytest
+from click import ClickException
 from pytest import fixture, mark
 from tomlkit import TOMLDocument
 
-from peeler.wheels.lock import AbstractURLFetcherStrategy, PylockUrlFetcher, PyprojectUVLockFetcher, UVLockUrlFetcher, UrlFetcherCreator, _generate_uv_lock, _get_wheels_urls_from_uv_lock, _get_wheels_urls_from_pylock
+from peeler.wheels.lock import (
+    AbstractURLFetcherStrategy,
+    PylockUrlFetcher,
+    PyprojectUVLockFetcher,
+    UrlFetcherCreator,
+    UVLockUrlFetcher,
+    _generate_uv_lock,
+    _get_wheels_urls_from_pylock,
+    _get_wheels_urls_from_uv_lock,
+)
 
 
 def test__get_wheels_urls_from_uv_lock(uv_lock_file: TOMLDocument) -> None:
@@ -13,11 +24,13 @@ def test__get_wheels_urls_from_uv_lock(uv_lock_file: TOMLDocument) -> None:
         "package2": ["wheels_url_package2_1", "wheels_url_package2_2"],
     }
 
+
 def test__get_wheels_urls_from_pylock(pylock_file: TOMLDocument) -> None:
     assert _get_wheels_urls_from_pylock(pylock_file) == {
         "package1": ["wheels_url_package1"],
         "package2": ["wheels_url_package2_1", "wheels_url_package2_2"],
     }
+
 
 def test__get_lock_file(pyproject_path_with_lock: Path) -> None:
     with _generate_uv_lock(pyproject_path_with_lock) as lock_file:
@@ -32,7 +45,9 @@ def test__get_lock_file_no_lock_file(pyproject_path_without_lock: Path) -> None:
 
     assert not lock_file.exists()
 
+
 _DATA = Path(__file__).parent / "data"
+
 
 @mark.parametrize(
     ("url_fetcher_creator", "expected_strategy"),
@@ -42,11 +57,23 @@ _DATA = Path(__file__).parent / "data"
         (_DATA / "pylock.toml", PylockUrlFetcher),
         (_DATA / "pylock.test.toml", PylockUrlFetcher),
     ],
-    indirect=["url_fetcher_creator"]
+    indirect=["url_fetcher_creator"],
 )
-def test_url_fetcher_creator_get_fetch_url_strategy(url_fetcher_creator: UrlFetcherCreator, expected_strategy: Type[AbstractURLFetcherStrategy]) -> None:
-
+def test_url_fetcher_creator_get_fetch_url_strategy(
+    url_fetcher_creator: UrlFetcherCreator,
+    expected_strategy: Type[AbstractURLFetcherStrategy],
+) -> None:
     assert isinstance(url_fetcher_creator.get_fetch_url_strategy(), expected_strategy)
+
+
+def test_url_fetcher_creator_get_fetch_url_strategy_raise_dir(tmp_path: Path) -> None:
+    with pytest.raises(ClickException, match="No supported file found in"):
+        UrlFetcherCreator(tmp_path).get_fetch_url_strategy()
+
+
+def test_url_fetcher_creator_get_fetch_url_strategy_raise_file(tmp_path: Path) -> None:
+    with pytest.raises(ClickException, match=" is not a supported type."):
+        UrlFetcherCreator(tmp_path / "non_existent.file").get_fetch_url_strategy()
 
 
 @fixture
@@ -62,15 +89,15 @@ def urls() -> Set[str]:
         "https://files.pythonhosted.org/packages/3f/6b/5610004206cf7f8e7ad91c5a85a8c71b2f2f8051a0c0c4d5916b76d6cbb2/numpy-1.26.4-cp311-cp311-win_amd64.whl",
     }
 
+
 @mark.parametrize(
     "url_fetcher",
     [
         UVLockUrlFetcher(_DATA / "uv.lock"),
         PyprojectUVLockFetcher(_DATA / "pyproject.toml"),
-        PylockUrlFetcher(_DATA / "pylock.toml")
+        PylockUrlFetcher(_DATA / "pylock.toml"),
     ],
-    ids=["uv_lock", "pyproject", "pylock"]
+    ids=["uv_lock", "pyproject", "pylock"],
 )
 def test_url_fetcher(url_fetcher: AbstractURLFetcherStrategy, urls: Set[str]) -> None:
-
     assert set(url_fetcher.get_urls()["numpy"]) == urls
