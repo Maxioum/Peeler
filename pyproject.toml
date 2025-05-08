@@ -78,8 +78,3 @@ pythonpath = ["."]
 addopts = "-lsv"
 testpaths = ["tests"]
 
-[tool.coverage.run]
-branch = true
-omit = [
-    'tests/*',
-]
