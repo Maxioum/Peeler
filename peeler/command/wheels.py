@@ -17,6 +17,7 @@ PYPROJECT_FILENAME = "pyproject.toml"
 
 # https://docs.blender.org/manual/en/dev/advanced/extensions/python_wheels.html
 WHEELS_DIRECTORY = "wheels"
+BLENDER_MANIFEST = "blender_manifest.toml"
 
 
 def _resolve_wheels_dir(
@@ -92,6 +93,25 @@ See: `https://docs.blender.org/manual/en/dev/advanced/extensions/python_wheels.h
     return wheels_directory
 
 
+def _resolve_blender_manifest_file(
+    blender_manifest: Path, allow_non_default_name: bool = False
+) -> Path:
+    if blender_manifest.is_dir():
+        blender_manifest = blender_manifest / BLENDER_MANIFEST
+
+    if not blender_manifest.name == BLENDER_MANIFEST:
+        msg = f"""The supplied blender_manifest file {format_filename(blender_manifest)}
+Should be named : `{BLENDER_MANIFEST}` not `{blender_manifest.name}`
+See: `https://docs.blender.org/manual/en/dev/advanced/extensions/python_wheels.html`
+        """
+        if allow_non_default_name:
+            typer.echo(f"Warning: {msg}")
+        else:
+            raise ClickException(msg)
+
+    return blender_manifest
+
+
 def _normalize(path: Path, dir: Path) -> str:
     return f"./{path.relative_to(dir).as_posix()}"
 
@@ -130,6 +150,10 @@ def wheels_command(
     :param blender_manifest_file: the blender manifest file
     :param wheels_directory: the directory to download wheels into.
     """
+
+    blender_manifest_file = _resolve_blender_manifest_file(
+        blender_manifest_file, allow_non_default_name=True
+    )
 
     wheels_directory = _resolve_wheels_dir(
         wheels_directory, blender_manifest_file, allow_non_default_name=True

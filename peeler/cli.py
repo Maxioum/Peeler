@@ -38,23 +38,34 @@ def manifest(
 
 
 @app.command(
-    help=f"Call a command to download wheels.",
+    help="Download wheels and update the Blender manifest.",
 )
 def wheels(
-    path: Annotated[Path, Argument()],
-    blender_manifest: Annotated[Path, Argument()],
-    wheels_directory: Annotated[Path | None, Argument()] = None,
+    path: Annotated[
+        Path,
+        Argument(
+            help="Path to a file or directory containing uv.lock, pylock.*.toml, or pyproject.toml (defaults to current working directory).",
+        ),
+    ] = Path.cwd(),
+    manifest: Annotated[
+        Path,
+        Argument(
+            help="Path to a file or directory containing blender_manifest.toml (defaults to current working directory)."
+        ),
+    ] = Path.cwd(),
+    wheels_dir: Annotated[
+        Path | None,
+        Argument(
+            show_default=False,
+            help="Directory where wheels will be downloaded (defaults to a sibling directory of the given manifest).",
+        ),
+    ] = None,
 ) -> None:
-    """Call the command to download wheels and write paths to the blender manifest.
-
-    :param path: The file or directory where the uv.lock, pylock.*.toml or pyproject is, default to cwd.
-    :param blender_manifest_file: path to the blender manifest file
-    :param wheels_directory: the directory to download wheels into, default in a directory next to the given file.
-    """
+    """Download wheels and write their paths to the Blender manifest."""
 
     from .command.wheels import wheels_command
 
-    wheels_command(path, blender_manifest, wheels_directory)
+    wheels_command(path, manifest, wheels_dir)
 
 
 if __name__ == "__main__":
