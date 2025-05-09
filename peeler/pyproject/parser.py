@@ -2,8 +2,12 @@
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
+from pathlib import Path
+from typing import Self
+
 from tomlkit import TOMLDocument
 from tomlkit.items import Table
+from tomlkit.toml_file import TOMLFile
 
 
 class PyprojectParser:
@@ -14,6 +18,15 @@ class PyprojectParser:
 
     def __init__(self, document: TOMLDocument) -> None:
         self._document = document
+
+    @classmethod
+    def from_file(cls, pyproject_file: Path) -> Self:
+        """Construct a PyprojectParser instance from a pyproject.toml file.
+
+        :param pyproject_file: the file to parse
+        :return: A new PyprojectParser instance
+        """
+        return cls(TOMLFile(pyproject_file).read())
 
     @property
     def project_table(self) -> Table:

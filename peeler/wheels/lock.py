@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict
 from collections.abc import Generator
 from contextlib import contextmanager
+from os import fspath
 from pathlib import Path
 from subprocess import run
 from typing import Dict, List, Type
@@ -22,6 +23,8 @@ from peeler.uv_utils import check_uv_version, find_uv_bin
 
 UV_LOCK_FILE = "uv.lock"
 
+from peeler.pyproject.parser import PyprojectParser
+
 
 @contextmanager
 def _generate_uv_lock(pyproject_file: Path) -> Generator[Path, None, None]:
@@ -34,18 +37,25 @@ def _generate_uv_lock(pyproject_file: Path) -> Generator[Path, None, None]:
 
     lock_path = Path(pyproject_file).parent / UV_LOCK_FILE
 
+    cmd: List[str] = [
+        uv_bin,
+        "--no-config",
+        "--directory",
+        fspath(pyproject_file.parent),
+        "lock",
+        "--no-build",
+    ]
+
+    python_specifiers = PyprojectParser.from_file(pyproject_file).project_table.get(
+        "requires-python"
+    )
+
+    if python_specifiers:
+        cmd.extend(["--python", str(python_specifiers)])
+
     with restore_file(lock_path, missing_ok=True):
         run(
-            [
-                uv_bin,
-                "--no-config",
-                "--directory",
-                pyproject_file.parent,
-                "lock",
-                "--python",
-                "3.11",
-                "--no-build",
-            ],
+            cmd,
             cwd=pyproject_file.parent,
         )
 
@@ -72,6 +82,7 @@ def _get_wheels_urls_from_uv_lock(lock_toml: TOMLDocument) -> Dict[str, List[str
 
     return urls
 
+
 def _get_wheels_urls_from_pylock(lock_toml: TOMLDocument) -> Dict[str, List[str]]:
     """Retrieve wheels url from a pylock toml.
 
@@ -91,6 +102,7 @@ def _get_wheels_urls_from_pylock(lock_toml: TOMLDocument) -> Dict[str, List[str]
         urls[package["name"]] = [wheels["url"] for wheels in package["wheels"]]
 
     return urls
+
 
 class AbstractURLFetcherStrategy(ABC):
     """Abstract base class for strategies that fetch URLs from a file.
