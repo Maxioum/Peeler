@@ -92,6 +92,8 @@ jobs:
         with:
           uv-version: ${{ matrix.uv-version }}
           python-version: ${{ matrix.python-version }}
+        env:
+          CI-on-uv-release: true
 
 
   create-issue:

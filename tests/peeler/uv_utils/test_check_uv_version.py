@@ -1,3 +1,4 @@
+import os
 from unittest import mock
 from unittest.mock import MagicMock, Mock
 
@@ -7,6 +8,10 @@ from click import ClickException
 from peeler.uv_utils import check_uv_version
 
 
+@pytest.mark.skipif(
+    os.environ.get("CI-on-uv-release") is not None,
+    reason="Disable in on-uv-realease workflow",
+)
 def test_check_uv_version() -> None:
     try:
         check_uv_version()
@@ -37,5 +42,3 @@ def test_check_uv_version_raises(mock_run: Mock, run_stdout: str) -> None:
     mock_run.return_value = mock_stdout
     with pytest.raises(ClickException):
         check_uv_version()
-
-
