@@ -1,10 +1,8 @@
 from pathlib import Path
 
-from pytest import raises, fixture
-from typer import Exit
+from pytest import fixture, raises
 
-from peeler.command.manifest import _find_pyproject_file
-from peeler.command.manifest import PYPROJECT_FILENAME
+from peeler.command.manifest import PYPROJECT_FILENAME, _find_pyproject_file
 
 
 @fixture
@@ -22,7 +20,7 @@ def pyproject_directory(pyproject_file: Path) -> Path:
 
 
 def test__find_pyproject_file_no_pyproject(tmp_path: Path) -> None:
-    with raises(Exit, match=f"No {PYPROJECT_FILENAME} found at"):
+    with raises(RuntimeError, match=f"No {PYPROJECT_FILENAME} found at"):
         _find_pyproject_file(tmp_path)
 
 

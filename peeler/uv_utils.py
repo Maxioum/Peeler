@@ -8,7 +8,6 @@ from os import PathLike, fspath
 from pathlib import Path
 from subprocess import run
 
-from click import ClickException
 from packaging.version import Version
 
 from peeler import MAX_UV_VERSION, MIN_UV_VERSION
@@ -25,7 +24,9 @@ def get_uv_bin_version(uv_bin: PathLike) -> Version | None:
 
     uv_bin = fspath(uv_bin)
 
-    result = run([uv_bin, "self", "version"], capture_output=True, text=True, check=True)
+    result = run(
+        [uv_bin, "self", "version"], capture_output=True, text=True, check=True
+    )
     output = result.stdout.strip()
     match = re.search(version_regex, output)
 
@@ -38,7 +39,7 @@ def get_uv_bin_version(uv_bin: PathLike) -> Version | None:
 def find_uv_bin() -> str:
     """Return the path to the uv bin.
 
-    :raises ClickException: if the bin cannot be found.
+    :raises RuntimeError: if the bin cannot be found.
     """
 
     try:
@@ -49,7 +50,7 @@ def find_uv_bin() -> str:
         uv_bin = shutil.which("uv")
 
     if uv_bin is None:
-        raise ClickException(
+        raise RuntimeError(
             f"""Cannot find uv bin
 Install uv `https://astral.sh/blog/uv` or
 Install peeler optional dependency uv (eg: pip install peeler[uv])
@@ -70,7 +71,7 @@ def check_uv_version() -> None:
 
     See .max-uv-version or pyproject.toml files.
 
-    :raises ClickException: if uv version cannot be determined or is lower than the minimum version.
+    :raises RuntimeError: if uv version cannot be determined or is lower than the minimum version.
     """
 
     uv_version = get_uv_bin_version(Path(find_uv_bin()))
@@ -97,7 +98,7 @@ uvx peeler[uv] [OPTIONS] COMMAND [ARGS]"""
 
     if not uv_version:
         header = "Error when checking uv version. Make sur to have installed, visit: https://docs.astral.sh/uv/getting-started/installation/"
-        raise ClickException(f"""{header}
+        raise RuntimeError(f"""{header}
 
 {body}
 
@@ -106,6 +107,6 @@ uvx peeler[uv] [OPTIONS] COMMAND [ARGS]"""
     if uv_version > MAX_UV_VERSION or uv_version < MIN_UV_VERSION:
         header = f"uv version is {uv_version}"
 
-        raise ClickException(f"""{header}
+        raise RuntimeError(f"""{header}
 {body}
 {update_uv}""")

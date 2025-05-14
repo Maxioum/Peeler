@@ -7,9 +7,7 @@ from pathlib import Path
 from subprocess import run
 from typing import Dict, List, Tuple
 
-import typer
-from click import ClickException
-from typer import progressbar
+from clypi import Spin, Spinner, cprint
 from wheel_filename import parse_wheel_filename
 
 from peeler.uv_utils import find_uv_bin
@@ -31,7 +29,7 @@ def _has_valid_implementation(url: str) -> bool:
     )
 
 
-def _download_from_url(destination_directory: Path, url: str) -> Path:
+async def _download_from_url(destination_directory: Path, url: str) -> Path:
     wheel_info = parse_wheel_filename(url)
     path = destination_directory / str(wheel_info)
 
@@ -68,7 +66,7 @@ def _download_from_url(destination_directory: Path, url: str) -> Path:
         "--implementation",
         implementation,
         "--progress-bar",
-        "off",
+        "on",
     ]
 
     if len(python_version) > 1:
@@ -76,17 +74,24 @@ def _download_from_url(destination_directory: Path, url: str) -> Path:
 
     cmd.append(url)
 
-    result = run(cmd, capture_output=True, text=True)
-    stderr = result.stderr
+    import asyncio
+
+    process = await asyncio.create_subprocess_exec(
+        *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+    )
+
+    stdout, stderr = await process.communicate()
 
     if not path.is_file():
         msg = f"Error when downloading wheel for package `{wheel_info.project}` for platform `{platform}`"
-        raise ClickException(f"{msg}{stderr}")
+        raise RuntimeError(f"{msg}{stderr.decode()}")
 
     return path
 
 
-def download_wheels(wheels_directory: Path, urls: Dict[str, List[str]]) -> List[Path]:
+async def download_wheels(
+    wheels_directory: Path, urls: Dict[str, List[str]]
+) -> List[Path]:
     """Download the wheels from urls with pip download into wheels_directory.
 
     :param wheels_directory: The directory to download wheels into
@@ -96,22 +101,26 @@ def download_wheels(wheels_directory: Path, urls: Dict[str, List[str]]) -> List[
     wheels_directory.mkdir(parents=True, exist_ok=True)
 
     wheels_paths: List[Path] = []
+    async with Spinner(
+        title="", capture=True, animation=Spin.DOTS2, suffix=""
+    ) as spinner:
+        for package_name, package_urls in urls.items():
+            # filter out python implementations not supported by blender
+            package_urls = list(filter(_has_valid_implementation, package_urls))
 
-    for package_name, package_urls in urls.items():
-        # filter out python implementations not supported by blender
-        package_urls = list(filter(_has_valid_implementation, package_urls))
+            if not package_urls:
+                msg = f"No suitable implementation found for {package_name}, not downloading."
+                cprint(f"Warning: {msg}")
+                continue
 
-        if not package_urls:
-            msg = (
-                f"No suitable implementation found for {package_name}, not downloading."
-            )
-            typer.echo(f"Warning: {msg}")
-            continue
+            for i, url in enumerate(package_urls):
+                title = f"Downloading: {package_name}"
+                if len(package_urls) > 1:
+                    title = f"{title} ({i + 1}/{len(package_urls)})"
+                spinner.title = title
 
-        with progressbar(package_urls, label=package_name, color=True) as _package_urls:
-            for url in _package_urls:
-                filename = _download_from_url(wheels_directory, url)
+                filename = await _download_from_url(wheels_directory, url)
 
                 wheels_paths.append(filename)
-
+        spinner.title = f"Downloaded {len(urls)} packages !"
     return wheels_paths

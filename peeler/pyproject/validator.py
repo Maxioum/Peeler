@@ -5,7 +5,6 @@
 from pathlib import Path
 from typing import Any, Dict
 
-from click import format_filename
 from dep_logic.specifiers import RangeSpecifier, parse_version_specifier
 from fastjsonschema import JsonSchemaValueException
 from packaging.version import Version
@@ -92,7 +91,7 @@ class PyprojectValidator:
                 ...
                 requires-python = "{_BLENDER_SUPPORTED_PYTHON_VERSION}"
 
-                (at: {format_filename(self.pyproject_path.resolve())})"""
+                (at: {(self.pyproject_path.resolve())})"""
 
             raise JsonSchemaValueException(message=msg, name="project.requires-python")
 

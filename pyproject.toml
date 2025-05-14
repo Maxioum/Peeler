@@ -20,13 +20,12 @@ keywords = ["blender", "add-on"]
 version = "0.0.1"
 
 dependencies = [
+    "clypi>=1.2.22",
     "dep-logic>=0.4.11",
     "jsonschema>=4.23.0",
     "packaging>=24.2",
     "pyproject-metadata>=0.9.0",
-    "rich>=13.9.4",
     "tomlkit>=0.13.2",
-    "typer>=0.15.1",
     "validate-pyproject>=0.23",
     "wheel-filename>=1.4.2",
 ]
@@ -39,7 +38,7 @@ Changelog = "https://github.com/Maxioum/Peeler/releases"
 Issues = "https://github.com/Maxioum/Peeler/issues"
 
 [project.scripts]
-peeler = "peeler.cli:app"
+peeler = "peeler.cli:main"
 
 [project.optional-dependencies]
 uv = [
@@ -61,7 +60,6 @@ build-backend = "hatchling.build"
 [dependency-groups]
 dev = [
     "pytest>=8.3.4",
-    "pytest-click>=1.1.0",
     "pytest-cov>=6.0.0",
 ]
 
@@ -77,4 +75,3 @@ exclude = ["tests"]
 pythonpath = ["."]
 addopts = "-lsv"
 testpaths = ["tests"]
-

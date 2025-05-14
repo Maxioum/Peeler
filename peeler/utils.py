@@ -9,9 +9,7 @@ from pathlib import Path
 from shutil import copy2
 from tempfile import TemporaryDirectory
 
-import typer
-from click import ClickException
-from typer import format_filename
+from clypi import cprint
 
 PYPROJECT_FILENAME = "pyproject.toml"
 
@@ -23,8 +21,8 @@ def find_pyproject_file(
 
     :param pyproject_path: file or directory path
     :param allow_non_default_name: whether to allow a file to be named other than `pyproject.toml`
-    :raises ClickException: on missing file
-    :raises ClickException: if allow_non_default_name is set to False, on file named other than `pyproject.toml`
+    :raises RuntimeError: on missing file
+    :raises RuntimeError: if allow_non_default_name is set to False, on file named other than `pyproject.toml`
     :return: the pyproject file path
     """
 
@@ -32,18 +30,18 @@ def find_pyproject_file(
         pyproject_path = pyproject_path / PYPROJECT_FILENAME
 
     if not pyproject_path.is_file():
-        raise ClickException(
-            f"No {PYPROJECT_FILENAME} found at {format_filename(pyproject_path.parent.resolve())}"
+        raise RuntimeError(
+            f"No {PYPROJECT_FILENAME} found at {(pyproject_path.parent.resolve())}"
         )
 
     if not pyproject_path.name == PYPROJECT_FILENAME:
-        msg = f"""The pyproject file at {format_filename(pyproject_path.parent)}
+        msg = f"""The pyproject file at {(pyproject_path.parent)}
 Should be named : `{PYPROJECT_FILENAME}` not `{pyproject_path.name}`
         """
         if allow_non_default_name:
-            typer.echo(f"Warning: {msg}")
+            cprint(f"Warning: {msg}")
         else:
-            raise ClickException(msg)
+            raise RuntimeError(msg)
 
     return pyproject_path
 
@@ -64,7 +62,7 @@ def restore_file(
     file_exist = filepath.exists()
 
     if not missing_ok and not file_exist:
-        raise FileNotFoundError(f"File {format_filename(filepath)} not found.")
+        raise FileNotFoundError(f"File {(filepath)} not found.")
 
     with TemporaryDirectory(ignore_cleanup_errors=True) as tempdir:
         if file_exist:

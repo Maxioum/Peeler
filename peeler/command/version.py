@@ -4,7 +4,7 @@
 
 from importlib import metadata
 
-import typer
+from clypi import cprint
 
 
 def version_command() -> None:
@@ -13,4 +13,4 @@ def version_command() -> None:
     import peeler
 
     version = metadata.version(peeler.__name__)
-    typer.echo(f"{peeler.__name__} {version}")
+    cprint(f"{peeler.__name__} {version}")

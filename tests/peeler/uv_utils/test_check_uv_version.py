@@ -3,7 +3,6 @@ from unittest import mock
 from unittest.mock import MagicMock, Mock
 
 import pytest
-from click import ClickException
 
 from peeler.uv_utils import check_uv_version
 
@@ -15,8 +14,8 @@ from peeler.uv_utils import check_uv_version
 def test_check_uv_version() -> None:
     try:
         check_uv_version()
-    except ClickException as e:
-        pytest.fail(f"Should not raise a ClickException: {e.message}")
+    except RuntimeError as e:
+        pytest.fail(f"Should not raise a RuntimeError: {e}")
 
 
 @pytest.mark.parametrize(
@@ -30,8 +29,8 @@ def test_check_uv_version_valid(mock_run: Mock, run_stdout: str) -> None:
     mock_run.return_value = mock_stdout
     try:
         check_uv_version()
-    except ClickException as e:
-        pytest.fail(f"Should not raise a ClickException: {e.message}")
+    except RuntimeError as e:
+        pytest.fail(f"Should not raise a RuntimeError: {e}")
 
 
 @pytest.mark.parametrize("run_stdout", ["uv 0.4.0", "uv not found"])
@@ -40,5 +39,5 @@ def test_check_uv_version_raises(mock_run: Mock, run_stdout: str) -> None:
     mock_stdout = MagicMock()
     mock_stdout.configure_mock(**{"stdout": run_stdout})
     mock_run.return_value = mock_stdout
-    with pytest.raises(ClickException):
+    with pytest.raises(RuntimeError):
         check_uv_version()

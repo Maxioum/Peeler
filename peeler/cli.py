@@ -3,59 +3,69 @@
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
 from pathlib import Path
-from typing import Annotated
 
-from typer import Argument, Typer
-
-app = Typer()
+from clypi import Command, Positional, arg
 
 
-@app.command(help=f"Display the current installed version.", hidden=True)
-def version() -> None:
-    """Call the version command."""
+class Version(Command):
+    """Display the current installed version."""
 
-    from .command.version import version_command
+    async def run(self) -> None:
+        """Call the version command."""
 
-    version_command()
+        from .command.version import version_command
 
-
-@app.command(
-    help=f"Create or update a blender_manifest.toml file from a pyproject.toml file.",
-)
-def manifest(
-    pyproject: Annotated[Path, Argument()],
-    blender_manifest: Annotated[Path, Argument(default_factory=Path.cwd)],
-) -> None:
-    """Call a command to create or update a blender_manifest.toml from a pyproject.toml.
-
-    :param pyproject: the path to the `pyproject.toml` file or directory
-    :param blender_manifest: optional path to the `blender_manifest.toml` file to be updated or created
-    """
-
-    from .command.manifest import manifest_command
-
-    manifest_command(pyproject, blender_manifest)
+        version_command()
 
 
-@app.command(
-    help=f"Call a command to download wheels.",
-)
-def wheels(
-    pyproject: Annotated[Path, Argument()],
-    blender_manifest: Annotated[Path, Argument()],
-    wheels_directory: Annotated[Path | None, Argument()] = None,
-) -> None:
-    """Call the command to download wheels and write paths to the blender manifest.
+class Manifest(Command):
+    """Create or update a blender_manifest.toml file from a pyproject.toml file."""
 
-    :param pyproject_file: The pyproject file.
-    :param blender_manifest_file: the blender manifest file
-    :param wheels_directory: the directory to download wheels into.
-    """
+    pyproject: Positional[Path] = arg(
+        help="the path to the `pyproject.toml` file or directory"
+    )
+    blender_manifest: Positional[Path] = arg(
+        default_factory=Path.cwd,
+        help="optional path to the `blender_manifest.toml` file to be updated or created",
+    )
 
-    from .command.wheels import wheels_command
+    async def run(self) -> None:
+        """Call a command to create or update a blender_manifest.toml from a pyproject.toml."""
+        from .command.manifest import manifest_command
 
-    wheels_command(pyproject, blender_manifest, wheels_directory)
+        manifest_command(self.pyproject, self.blender_manifest)
+
+
+class Wheels(Command):
+    """Call a command to download wheels."""
+
+    pyproject: Positional[Path] = arg(help="The pyproject file")
+    blender_manifest: Positional[Path] = arg(help="the blender manifest file")
+    wheels_directory: Positional[Path] = arg(
+        default=None, help="the directory to download wheels into."
+    )
+
+    async def run(self) -> None:
+        """Call the command to download wheels and write paths to the blender manifest."""
+
+        from .command.wheels import wheels_command
+
+        await wheels_command(
+            self.pyproject, self.blender_manifest, self.wheels_directory
+        )
+
+
+class Peeler(Command):
+    """A verry simple cli."""
+
+    subcommand: Version | Manifest | Wheels
+
+
+def main() -> None:
+    """Peeler app Entry point."""
+    cmd = Peeler.parse()
+    cmd.start()
 
 
 if __name__ == "__main__":
-    app()
+    main()

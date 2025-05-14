@@ -5,13 +5,11 @@
 from pathlib import Path
 from typing import List
 
-import typer
-from click import format_filename
-from click.exceptions import ClickException
+from clypi import cprint
 from tomlkit.toml_file import TOMLFile
 
-from peeler.pyproject.update import update_requires_python
 from peeler.pyproject.parser import PyprojectParser
+from peeler.pyproject.update import update_requires_python
 from peeler.utils import find_pyproject_file, restore_file
 from peeler.uv_utils import check_uv_version
 from peeler.wheels.download import download_wheels
@@ -34,8 +32,8 @@ def _resolve_wheels_dir(
     :param wheels_directory: the original path given by the user
     :param blender_manifest_file: the path the blender_manifest.toml file, the wheels directory should be next to this file.
     :param allow_non_default_name: whether to allow the directory to be named other than `wheels`, defaults to False, see `https://docs.blender.org/manual/en/dev/advanced/extensions/python_wheels.html`
-    :raises ClickException: if allow_non_default_name is False and the given path is not named `wheels`
-    :raises ClickException: if the given path is not None and not a directory
+    :raises RuntimeError: if allow_non_default_name is False and the given path is not named `wheels`
+    :raises RuntimeError: if the given path is not None and not a directory
     :return: The valid path
 
     >>> _resolve_wheels_dir(
@@ -61,7 +59,7 @@ def _resolve_wheels_dir(
     ...     Path("/path/to/other_dir/blender_manifest.toml"),
     ...     allow_non_default_name=False,
     ... )
-    ClickException: The wheels directory "/path/to/wheels" Should be next to the blender_manifest.toml file ...
+    RuntimeError: The wheels directory "/path/to/wheels" Should be next to the blender_manifest.toml file ...
     """
     if wheels_directory is None:
         wheels_directory = blender_manifest_file.parent / WHEELS_DIRECTORY
@@ -69,29 +67,27 @@ def _resolve_wheels_dir(
     wheels_directory.mkdir(parents=True, exist_ok=True)
 
     if not wheels_directory.is_dir():
-        raise ClickException(
-            f"{format_filename(wheels_directory)} is not a directory !"
-        )
+        raise RuntimeError(f"{(wheels_directory)} is not a directory !")
 
     if not wheels_directory.name == WHEELS_DIRECTORY:
-        msg = f"""The wheels directory {format_filename(wheels_directory)}
+        msg = f"""The wheels directory {(wheels_directory)}
 Should be named : `{WHEELS_DIRECTORY}` not `{wheels_directory.name}`
 See: `https://docs.blender.org/manual/en/dev/advanced/extensions/python_wheels.html`
         """
         if allow_non_default_name:
-            typer.echo(f"Warning: {msg}")
+            cprint(f"Warning: {msg}")
         else:
-            raise ClickException(msg)
+            raise RuntimeError(msg)
 
     if not wheels_directory.parent == blender_manifest_file.parent:
-        msg = f"""The wheels directory {format_filename(wheels_directory)}
-Should be next to the blender_manifest.toml file {format_filename(blender_manifest_file)}
+        msg = f"""The wheels directory {(wheels_directory)}
+Should be next to the blender_manifest.toml file {(blender_manifest_file)}
 See: `https://docs.blender.org/manual/en/dev/advanced/extensions/python_wheels.html`
         """
         if allow_non_default_name:
-            typer.echo(f"Warning: {msg}")
+            cprint(f"Warning: {msg}")
         else:
-            raise ClickException(msg)
+            raise RuntimeError(msg)
 
     return wheels_directory
 
@@ -125,7 +121,7 @@ def write_wheels_path(blender_manifest_path: Path, wheels_paths: List[Path]) -> 
     file.write(doc)
 
 
-def wheels_command(
+async def wheels_command(
     pyproject_file: Path, blender_manifest_file: Path, wheels_directory: Path | None
 ) -> None:
     """Download wheel from pyproject dependency and write their paths to the blender manifest.
@@ -153,6 +149,6 @@ def wheels_command(
 
         urls = get_wheels_url(pyproject_file)
 
-    wheels_paths = download_wheels(wheels_directory, urls)
+    wheels_paths = await download_wheels(wheels_directory, urls)
 
     write_wheels_path(blender_manifest_file, wheels_paths)
