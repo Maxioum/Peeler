@@ -1,8 +1,6 @@
 # Peeler – Simplify Your Blender Add-on Packaging
 
->This package is under active development. Feel free to ask for help [here](https://github.com/Maxioum) or open an issue [here](https://github.com/Maxioum/Peeler/issues/new).
-I’ll be happy to develop the feature you need. :smile:
-
+> This package is under active development. Feel free to ask for help [here](https://github.com/Maxioum) or open an issue [here](https://github.com/Maxioum/Peeler/issues/new).
 
 A tool to easily package your **Blender add-on**
 
@@ -12,45 +10,29 @@ Since Blender 4.2, add-ons must use `blender_manifest.toml` instead of the stand
 
 # Installation
 
-[uv](https://docs.astral.sh/uv/) is required to use the [Wheels](#wheels) feature.
-
-## If you don't have uv installed
-
-Either [install uv](https://docs.astral.sh/uv/getting-started/installation/) and run:
+You can install **Peeler** with your favorite package manager (pip, uv, pipx, etc.). To get started, simply run:
 
 ```bash
 pip install peeler
 ```
 
-Or install uv and peeler at the same time:
-
-```bash
-pip install peeler[uv]
-```
-
-## If you are already a uv user
-
-**Peeler** does not need to be added to your project dependencies - you can use Peeler directly as a tool:
+If you use [uv](https://docs.astral.sh/uv/) **Peeler** does not need to be added to your project dependencies - you can use **Peeler** directly as a tool:
 
 ```bash
 uvx peeler [OPTIONS] COMMAND [ARGS]
 ```
 
-Or install **Peeler** without uv:
-
-```bash
-uv pip install peeler
-```
-
 # Features
 
->Each feature can be used independently.
+Each feature can be used independently.
 
-[Manifest](#Manifest):
-Generate the `blender_manifest.toml` from fields in a `pyproject.toml`.
+🛠️ [Manifest](#Manifest)
 
-[Wheels](#Wheels):
-Download the required **wheels** for packaging your add-on based on the dependencies specified in your `pyproject.toml`, automatically write their paths to `blender_manifest.toml`.
+> Generate a `blender_manifest.toml` file from your `pyproject.toml` fields.
+
+📦 [Wheels](#Wheels)
+
+> Automatically download the required **wheels** from your add-on’s dependencies specified in your `pyproject.toml` and write their paths to `blender_manifest.toml`.
 
 ## Manifest
 
@@ -127,6 +109,25 @@ Hint: Ensure Blender is [added to your `PATH`](https://docs.blender.org/manual/e
 ## Wheels
 
 Download the required **wheels** for packaging your add-on based on the dependencies specified in your `pyproject.toml`, automatically write their paths to `blender_manifest.toml`.
+
+### 0. Installation
+
+**Peeler** [Wheels](#wheels) feature relies on a [lockfile](https://pydevtools.com/handbook/explanation/what-is-a-lock-file/) 📄 to work.
+
+Currently supported lockfile formats:
+
+- :snake: Python [PEP 751](https://peps.python.org/pep-0751/) [pylock.toml](https://packaging.python.org/en/latest/specifications/pylock-toml/)
+- 🚀 [uv](https://docs.astral.sh/uv/concepts/projects/sync/) [uv.lock](https://docs.astral.sh/uv/concepts/projects/sync/)
+
+Use your favorite tool such as [PDM](https://pdm-project.org/en/latest/usage/lockfile/#export-locked-packages-to-alternative-formats) or [uv](https://docs.astral.sh/uv/concepts/projects/layout/#pylocktoml) to generate a **pylock.toml** file.
+
+If you don't have a tool yet, just run:
+
+```bash
+pip install peeler[uv]
+```
+
+Then sit back and let **Peeler** handle it for you 😄
 
 ### 1. In your `pyproject.toml`, specify your dependencies
 
