@@ -2,41 +2,31 @@
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
+import sys
+from abc import ABC, abstractmethod
 from os import fspath
 from pathlib import Path
 from subprocess import run
-from typing import Dict, List, Tuple
+from typing import Dict, Iterable, List, Protocol, Tuple
 
 import typer
 from click import ClickException
 from typer import progressbar
-from wheel_filename import parse_wheel_filename
+from wheel_filename import ParsedWheelFilename, parse_wheel_filename
 
-from peeler.uv_utils import find_uv_bin
-
-_VALID_IMPLEMENTATIONS = {"cp", "py"}
+from peeler.uv_utils import find_uv_bin, has_uv
 
 
 def _parse_implementation_and_python_version(python_tag: str) -> Tuple[str, str]:
     return python_tag[:2], python_tag[2:]
 
 
-def _has_valid_implementation(url: str) -> bool:
+def _wheel_path(destination_directory: Path, wheel_info: ParsedWheelFilename) -> Path:
+    return destination_directory / str(wheel_info)
+
+
+def _pip_cmd(url: str, destination_directory: Path) -> List[str]:
     wheel_info = parse_wheel_filename(url)
-
-    return any(
-        _parse_implementation_and_python_version(tag)[0].lower()
-        in _VALID_IMPLEMENTATIONS
-        for tag in wheel_info.python_tags
-    )
-
-
-def _download_from_url(destination_directory: Path, url: str) -> Path:
-    wheel_info = parse_wheel_filename(url)
-    path = destination_directory / str(wheel_info)
-
-    if path.is_file():
-        return path
 
     platform = wheel_info.platform_tags[0]
     implementation, python_version = _parse_implementation_and_python_version(
@@ -45,15 +35,8 @@ def _download_from_url(destination_directory: Path, url: str) -> Path:
     abi = wheel_info.abi_tags[0]
 
     _destination_directory = fspath(destination_directory.resolve())
-    uv_bin = find_uv_bin()
+
     cmd = [
-        uv_bin,
-        "--isolated",
-        "tool",
-        "run",
-        "--no-config",
-        "--no-python-downloads",
-        "--no-build",
         "pip",
         "download",
         "-d",
@@ -69,21 +52,230 @@ def _download_from_url(destination_directory: Path, url: str) -> Path:
         implementation,
         "--progress-bar",
         "off",
+        url,
     ]
 
     if len(python_version) > 1:
         cmd.extend(["--python-version", python_version])
 
-    cmd.append(url)
+    return cmd
 
-    result = run(cmd, capture_output=True, text=True)
-    stderr = result.stderr
 
-    if not path.is_file():
-        msg = f"Error when downloading wheel for package `{wheel_info.project}` for platform `{platform}`"
-        raise ClickException(f"{msg}{stderr}")
+class UrlsFilter(Protocol):
+    """
+    Protocol defining a callable that filters a list of wheel URLs.
 
-    return path
+    Implementations should return a list of URLs matching a specific criterion.
+    """
+
+    def __call__(self, urls: Iterable[str]) -> List[str]:
+        """
+        Filter the given list of URLs.
+
+        :param urls: The list of wheel URLs to filter.
+        :return: A filtered list of wheel URLs.
+        """
+        ...
+
+
+class HasValidImplementation(UrlsFilter):
+    """
+    Filter wheel URLs to retain only those with Blender compatible implementation tags.
+
+    Valid implementations include `cp` (CPython) and `py` (generic Python).
+    :param package_name: Optional name of the package, used in warning messages.
+    """
+
+    _VALID_IMPLEMENTATIONS = {"cp", "py"}
+
+    def __init__(self, package_name: str | None = None) -> None:
+        self.package_name = package_name
+
+    def has_valid_implementation(self, url: str) -> bool:
+        """
+        Check if the wheel URL has a valid implementation tag.
+
+        :param url: The wheel URL to check.
+        :return: True if the implementation is valid, False otherwise.
+        """
+        wheel_info = parse_wheel_filename(url)
+
+        result = any(
+            _parse_implementation_and_python_version(tag)[0].lower()
+            in self._VALID_IMPLEMENTATIONS
+            for tag in wheel_info.python_tags
+        )
+
+        return result
+
+    def __call__(self, urls: Iterable[str]) -> List[str]:
+        """
+        Filter out URLs that do not match valid implementation tags.
+
+        :param urls: Iterable of wheel URLs to filter.
+        :return: List of URLs matching the valid implementation criteria.
+        """
+        urls = list(filter(self.has_valid_implementation, urls))
+
+        if not urls:
+            if self.package_name:
+                msg = f"No suitable implementation found for {self.package_name}, not downloading."
+                typer.echo(f"Warning: {msg}")
+
+        return urls
+
+
+class IsNotAlreadyDownloaded(UrlsFilter):
+    """
+    Filter wheel URLs to exclude those already downloaded to a given directory.
+
+    :param destination_directory: Directory where wheels are downloaded.
+    """
+
+    def __init__(self, destination_directory: Path) -> None:
+        self.destination_directory = destination_directory
+
+    def _is_downloaded(self, url: str) -> bool:
+        """
+        Check whether the wheel corresponding to the given URL is already downloaded.
+
+        :param url: The wheel URL to check.
+        :return: True if the wheel is not already downloaded, False otherwise.
+        """
+        wheel_info = parse_wheel_filename(url)
+        path = self.destination_directory / str(wheel_info)
+
+        return not path.is_file()
+
+    def __call__(self, urls: Iterable[str]) -> List[str]:
+        """
+        Filter out wheel URLs that are already downloaded.
+
+        :param urls: Iterable of wheel URLs to filter.
+        :return: List of URLs not yet downloaded.
+        """
+        return list(filter(self._is_downloaded, urls))
+
+
+class AbstractWheelsDownloader(ABC):
+    """
+    Abstract base class defining the interface for wheel downloaders.
+
+    Subclasses must implement the `download_wheel` method to handle the
+    download of Python wheels to a specified directory.
+    """
+
+    @abstractmethod
+    def download_wheel(self, url: str, destination_directory: Path) -> Path:
+        """
+        Download a wheel file from the given URL and stores it in the destination directory.
+
+        :param url: The URL pointing to the wheel file to download.
+        :param destination_directory: The directory where the wheel should be saved.
+        :return: The full path to the downloaded wheel file.
+        """
+        raise NotImplementedError
+
+
+class UVPipWheelsDownloader(AbstractWheelsDownloader):
+    """
+    Wheel downloader that uses `uv` to download wheels.
+
+    This implementation runs `pip` through uv commands to download the specified
+    wheel file to a given destination directory.
+    """
+
+    def download_wheel(self, url: str, destination_directory: Path) -> Path:
+        """
+        Download a wheel file from the given URL using `uv` and stores it in the destination directory.
+
+        :param url: The URL pointing to the wheel file to download.
+        :param destination_directory: The directory where the wheel should be saved.
+        :return: The full path to the downloaded wheel file.
+        :raises ClickException: If the wheel file is not found after download.
+        """
+
+        uv_bin = find_uv_bin()
+        cmd = [
+            uv_bin,
+            "--isolated",
+            "tool",
+            "run",
+            "--no-config",
+            "--no-python-downloads",
+            "--no-build",
+            *_pip_cmd(url=url, destination_directory=destination_directory),
+        ]
+
+        result = run(cmd, capture_output=True, text=True)
+
+        wheel_info = parse_wheel_filename(url)
+        path = _wheel_path(destination_directory, wheel_info)
+
+        if not path.is_file():
+            stderr = result.stderr
+            platforms = wheel_info.platform_tags
+            msg = f"Error when downloading wheel for package `{wheel_info.project}` for platform(s) `{' '.join(platforms)}`"
+            raise ClickException(f"{msg}{stderr}")
+
+        return path
+
+
+class PipWheelsDownloader(AbstractWheelsDownloader):
+    """
+    Wheel downloader that uses the standard pip module to download wheels.
+
+    This implementation constructs and runs a pip command to download the specified
+    wheel file to a given destination directory.
+    """
+
+    def download_wheel(self, url: str, destination_directory: Path) -> Path:
+        """
+        Download a wheel file from the given URL using pip and stores it in the destination directory.
+
+        :param url: The URL pointing to the wheel file to download.
+        :param destination_directory: The directory where the wheel should be saved.
+        :return: The full path to the downloaded wheel file.
+        :raises ClickException: If the wheel file is not found after download.
+        """
+
+        cmd = [sys.executable, "-m", *_pip_cmd(url, destination_directory)]
+
+        result = run(cmd, capture_output=True, text=True)
+
+        wheel_info = parse_wheel_filename(url)
+        path = _wheel_path(destination_directory, wheel_info)
+
+        if not path.is_file():
+            stderr = result.stderr
+            platforms = wheel_info.platform_tags
+            msg = f"Error when downloading wheel for package `{wheel_info.project}` for platform(s) `{' '.join(platforms)}`"
+            raise ClickException(f"{msg}{stderr}")
+
+        return path
+
+
+class WheelsDownloaderCreator:
+    """
+    Factory class for selecting an appropriate wheel download strategy.
+
+    Depending on the environment, this class decides whether to use the `uv`-based
+    wheel downloader or the standard pip-based downloader.
+    """
+
+    def get_wheel_download_strategy(self) -> AbstractWheelsDownloader:
+        """
+        Return the appropriate wheel download strategy based on the current environment.
+
+        If `uv` is available, returns a `UVPipWheelsDownloader` instance.
+        Otherwise, returns a `PipWheelsDownloader` instance.
+
+        :return: The selected wheel download strategy.
+        """
+        if has_uv():
+            return UVPipWheelsDownloader()
+        else:
+            return PipWheelsDownloader()
 
 
 def download_wheels(wheels_directory: Path, urls: Dict[str, List[str]]) -> List[Path]:
@@ -97,21 +289,24 @@ def download_wheels(wheels_directory: Path, urls: Dict[str, List[str]]) -> List[
 
     wheels_paths: List[Path] = []
 
+    wheel_downloader = WheelsDownloaderCreator().get_wheel_download_strategy()
+
     for package_name, package_urls in urls.items():
-        # filter out python implementations not supported by blender
-        package_urls = list(filter(_has_valid_implementation, package_urls))
+        filters: List[UrlsFilter] = [
+            HasValidImplementation(package_name),
+            IsNotAlreadyDownloaded(wheels_directory),
+        ]
+
+        for filter_ in filters:
+            package_urls = filter_(package_urls)
 
         if not package_urls:
-            msg = (
-                f"No suitable implementation found for {package_name}, not downloading."
-            )
-            typer.echo(f"Warning: {msg}")
             continue
 
         with progressbar(package_urls, label=package_name, color=True) as _package_urls:
-            for url in _package_urls:
-                filename = _download_from_url(wheels_directory, url)
-
-                wheels_paths.append(filename)
+            wheels_paths = [
+                wheel_downloader.download_wheel(url, wheels_directory)
+                for url in _package_urls
+            ]
 
     return wheels_paths
