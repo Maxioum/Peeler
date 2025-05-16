@@ -5,6 +5,7 @@
 from pathlib import Path
 
 import tomlkit
+from clypi import AbortException
 
 from ..manifest.validate import validate_manifest
 from ..manifest.write import export_to_blender_manifest
@@ -20,7 +21,7 @@ def _find_pyproject_file(pyproject_path: Path) -> Path:
         pyproject_path = pyproject_path / PYPROJECT_FILENAME
 
     if not pyproject_path.is_file():
-        raise RuntimeError(
+        raise AbortException(
             f"No {PYPROJECT_FILENAME} found at {pyproject_path.parent.resolve()}"
         )
 

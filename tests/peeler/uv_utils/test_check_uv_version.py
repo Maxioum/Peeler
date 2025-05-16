@@ -3,6 +3,7 @@ from unittest import mock
 from unittest.mock import MagicMock, Mock
 
 import pytest
+from clypi import AbortException
 
 from peeler.uv_utils import check_uv_version
 
@@ -39,5 +40,5 @@ def test_check_uv_version_raises(mock_run: Mock, run_stdout: str) -> None:
     mock_stdout = MagicMock()
     mock_stdout.configure_mock(**{"stdout": run_stdout})
     mock_run.return_value = mock_stdout
-    with pytest.raises(RuntimeError):
+    with pytest.raises(AbortException):
         check_uv_version()

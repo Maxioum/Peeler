@@ -2,12 +2,13 @@
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
+import asyncio
+from asyncio import create_subprocess_exec
 from os import fspath
 from pathlib import Path
-from subprocess import run
 from typing import Dict, List, Tuple
 
-from clypi import Spin, Spinner, cprint
+from clypi import AbortException, ClypiException, Spin, Spinner, cprint
 from wheel_filename import parse_wheel_filename
 
 from peeler.uv_utils import find_uv_bin
@@ -74,9 +75,7 @@ async def _download_from_url(destination_directory: Path, url: str) -> Path:
 
     cmd.append(url)
 
-    import asyncio
-
-    process = await asyncio.create_subprocess_exec(
+    process = await create_subprocess_exec(
         *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
     )
 
@@ -84,7 +83,7 @@ async def _download_from_url(destination_directory: Path, url: str) -> Path:
 
     if not path.is_file():
         msg = f"Error when downloading wheel for package `{wheel_info.project}` for platform `{platform}`"
-        raise RuntimeError(f"{msg}{stderr.decode()}")
+        raise AbortException(f"{msg}{stderr.decode()}")
 
     return path
 

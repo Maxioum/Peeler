@@ -8,6 +8,7 @@ from os import PathLike, fspath
 from pathlib import Path
 from subprocess import run
 
+from clypi import AbortException
 from packaging.version import Version
 
 from peeler import MAX_UV_VERSION, MIN_UV_VERSION
@@ -50,7 +51,7 @@ def find_uv_bin() -> str:
         uv_bin = shutil.which("uv")
 
     if uv_bin is None:
-        raise RuntimeError(
+        raise AbortException(
             f"""Cannot find uv bin
 Install uv `https://astral.sh/blog/uv` or
 Install peeler optional dependency uv (eg: pip install peeler[uv])
@@ -98,7 +99,7 @@ uvx peeler[uv] [OPTIONS] COMMAND [ARGS]"""
 
     if not uv_version:
         header = "Error when checking uv version. Make sur to have installed, visit: https://docs.astral.sh/uv/getting-started/installation/"
-        raise RuntimeError(f"""{header}
+        raise AbortException(f"""{header}
 
 {body}
 
@@ -107,6 +108,6 @@ uvx peeler[uv] [OPTIONS] COMMAND [ARGS]"""
     if uv_version > MAX_UV_VERSION or uv_version < MIN_UV_VERSION:
         header = f"uv version is {uv_version}"
 
-        raise RuntimeError(f"""{header}
+        raise AbortException(f"""{header}
 {body}
 {update_uv}""")

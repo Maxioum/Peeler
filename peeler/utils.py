@@ -9,7 +9,7 @@ from pathlib import Path
 from shutil import copy2
 from tempfile import TemporaryDirectory
 
-from clypi import cprint
+from clypi import AbortException, cprint
 
 PYPROJECT_FILENAME = "pyproject.toml"
 
@@ -30,7 +30,7 @@ def find_pyproject_file(
         pyproject_path = pyproject_path / PYPROJECT_FILENAME
 
     if not pyproject_path.is_file():
-        raise RuntimeError(
+        raise AbortException(
             f"No {PYPROJECT_FILENAME} found at {(pyproject_path.parent.resolve())}"
         )
 
@@ -41,7 +41,7 @@ Should be named : `{PYPROJECT_FILENAME}` not `{pyproject_path.name}`
         if allow_non_default_name:
             cprint(f"Warning: {msg}")
         else:
-            raise RuntimeError(msg)
+            raise AbortException(msg)
 
     return pyproject_path
 

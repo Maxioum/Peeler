@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from clypi import AbortException
 from pytest import fixture, raises
 
 from peeler.command.manifest import PYPROJECT_FILENAME, _find_pyproject_file
@@ -20,7 +21,7 @@ def pyproject_directory(pyproject_file: Path) -> Path:
 
 
 def test__find_pyproject_file_no_pyproject(tmp_path: Path) -> None:
-    with raises(RuntimeError, match=f"No {PYPROJECT_FILENAME} found at"):
+    with raises(AbortException, match=f"No {PYPROJECT_FILENAME} found at"):
         _find_pyproject_file(tmp_path)
 
 

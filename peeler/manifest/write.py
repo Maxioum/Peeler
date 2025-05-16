@@ -2,10 +2,11 @@
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
-from typing import Optional
-from pathlib import Path
 from logging import getLogger
+from pathlib import Path
+from typing import Optional
 
+from clypi import AbortException
 from tomlkit import TOMLDocument, comment, nl
 from tomlkit.toml_file import TOMLFile
 
@@ -61,7 +62,7 @@ def _retrieve_valid_path(path: Path | None, /, allow_non_default_name: bool) -> 
 
     :param path: the original path given by the user
     :param allow_non_default_name: whether to allow to export to a file named other than `blender_manifest.toml`, defaults to False
-    :raises ValueError: if allow_non_default_name is False and the given path is not named `blender_manifest.toml`
+    :raises AbortException: if allow_non_default_name is False and the given path is not named `blender_manifest.toml`
     :return: The valid path
 
     >>> _retrieve_valid_path(None, allow_non_default_name=False)
@@ -80,7 +81,7 @@ def _retrieve_valid_path(path: Path | None, /, allow_non_default_name: bool) -> 
     >>> _retrieve_valid_path(
     ...     Path("/path/to/manifest/maya_manifest.toml"), allow_non_default_name=False
     ... )
-    ValueError: the blender manifest should be named : `blender_manifest.toml` not `maya_manifest.toml`
+    AbortException: the blender manifest should be named : `blender_manifest.toml` not `maya_manifest.toml`
     """
 
     if path is None:
@@ -99,7 +100,7 @@ def _retrieve_valid_path(path: Path | None, /, allow_non_default_name: bool) -> 
         if allow_non_default_name:
             logger.warning(msg)
         else:
-            raise ValueError(msg)
+            raise AbortException(msg)
 
     return path
 

@@ -1,13 +1,14 @@
 from pathlib import Path
 
 import pytest
+from clypi import AbortException
 from tomlkit import TOMLDocument
 from tomlkit.toml_file import TOMLFile
 
 from peeler.manifest.write import (
+    BLENDER_MANIFEST_FILENAME,
     _write,
     export_to_blender_manifest,
-    BLENDER_MANIFEST_FILENAME,
 )
 
 
@@ -71,7 +72,7 @@ def test_export_to_blender_manifest_dirname(
 def test_export_to_blender_manifest_value_error(
     toml_document: TOMLDocument, tmpdir: str
 ) -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(AbortException):
         export_to_blender_manifest(
             toml_document,
             Path(tmpdir, "3dsmax_manifest.toml"),

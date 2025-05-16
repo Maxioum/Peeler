@@ -5,7 +5,7 @@
 from pathlib import Path
 from typing import List
 
-from clypi import cprint
+from clypi import AbortException, cprint
 from tomlkit.toml_file import TOMLFile
 
 from peeler.pyproject.parser import PyprojectParser
@@ -32,8 +32,8 @@ def _resolve_wheels_dir(
     :param wheels_directory: the original path given by the user
     :param blender_manifest_file: the path the blender_manifest.toml file, the wheels directory should be next to this file.
     :param allow_non_default_name: whether to allow the directory to be named other than `wheels`, defaults to False, see `https://docs.blender.org/manual/en/dev/advanced/extensions/python_wheels.html`
-    :raises RuntimeError: if allow_non_default_name is False and the given path is not named `wheels`
-    :raises RuntimeError: if the given path is not None and not a directory
+    :raises AbortException: if allow_non_default_name is False and the given path is not named `wheels`
+    :raises AbortException: if the given path is not None and not a directory
     :return: The valid path
 
     >>> _resolve_wheels_dir(
@@ -59,7 +59,7 @@ def _resolve_wheels_dir(
     ...     Path("/path/to/other_dir/blender_manifest.toml"),
     ...     allow_non_default_name=False,
     ... )
-    RuntimeError: The wheels directory "/path/to/wheels" Should be next to the blender_manifest.toml file ...
+    AbortException: The wheels directory "/path/to/wheels" Should be next to the blender_manifest.toml file ...
     """
     if wheels_directory is None:
         wheels_directory = blender_manifest_file.parent / WHEELS_DIRECTORY
@@ -67,7 +67,7 @@ def _resolve_wheels_dir(
     wheels_directory.mkdir(parents=True, exist_ok=True)
 
     if not wheels_directory.is_dir():
-        raise RuntimeError(f"{(wheels_directory)} is not a directory !")
+        raise AbortException(f"{(wheels_directory)} is not a directory !")
 
     if not wheels_directory.name == WHEELS_DIRECTORY:
         msg = f"""The wheels directory {(wheels_directory)}
@@ -77,7 +77,7 @@ See: `https://docs.blender.org/manual/en/dev/advanced/extensions/python_wheels.h
         if allow_non_default_name:
             cprint(f"Warning: {msg}")
         else:
-            raise RuntimeError(msg)
+            raise AbortException(msg)
 
     if not wheels_directory.parent == blender_manifest_file.parent:
         msg = f"""The wheels directory {(wheels_directory)}
@@ -87,7 +87,7 @@ See: `https://docs.blender.org/manual/en/dev/advanced/extensions/python_wheels.h
         if allow_non_default_name:
             cprint(f"Warning: {msg}")
         else:
-            raise RuntimeError(msg)
+            raise AbortException(msg)
 
     return wheels_directory
 
@@ -104,7 +104,7 @@ def write_wheels_path(blender_manifest_path: Path, wheels_paths: List[Path]) -> 
     """
 
     if not blender_manifest_path.exists():
-        raise RuntimeError(f"No blender_manifest at {blender_manifest_path}")
+        raise AbortException(f"No blender_manifest at {blender_manifest_path}")
 
     file = TOMLFile(blender_manifest_path)
     doc = file.read()

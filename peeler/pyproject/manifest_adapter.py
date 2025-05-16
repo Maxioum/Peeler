@@ -8,6 +8,7 @@ from collections.abc import Callable
 from functools import partial
 from typing import Any, Dict, Set
 
+from clypi import AbortException
 from tomlkit import TOMLDocument
 
 from .parser import PyprojectParser
@@ -76,7 +77,7 @@ class ManifestAdapter:
         """Get the default value of the property as specified in the blender manifest jsonschema.
 
         :param property_name: the name of the properties as specified
-        :raises RuntimeError: if no default value
+        :raises AbortException: if no default value
         :return: the default value
         """
         properties: Dict[str, Dict[str, Any]] = self.blender_manifest_jsonschema[
@@ -87,7 +88,7 @@ class ManifestAdapter:
         default_value = property_.get("default")
 
         if default_value is None:
-            raise RuntimeError(
+            raise AbortException(
                 f"The property: {property_name} has no default value provided in the json_schema"
             )
 
@@ -111,7 +112,7 @@ class ManifestAdapter:
     def to_blender_manifest(self) -> TOMLDocument:
         """Generate a blender manifest TOML document.
 
-        :raises ValueError: if required values cannot be inferred from the pyproject.
+        :raises AbortException: if required values cannot be inferred from the pyproject.
         :return: A blender manifest TOML document.
         """
 
@@ -124,7 +125,7 @@ class ManifestAdapter:
                 for field in self._strictly_required_fields
             }
             msg = header + r"\n".join(missing_properties)
-            raise ValueError(msg)
+            raise AbortException(msg)
 
         document = TOMLDocument()
 
