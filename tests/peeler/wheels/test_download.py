@@ -1,7 +1,7 @@
 import pytest
 
 from peeler.wheels.download import (
-    _has_valid_implementation,
+    HasValidImplementation,
     _parse_implementation_and_python_version,
 )
 
@@ -136,7 +136,7 @@ def test__parse_implementation_and_python_version(
     ],
 )
 def test__has_valid_implementation(url: str) -> None:
-    assert _has_valid_implementation(url)
+    assert HasValidImplementation()([url])
 
 
 @pytest.mark.parametrize(
@@ -157,4 +157,4 @@ def test__has_valid_implementation(url: str) -> None:
     ],
 )
 def test__has_valid_implementation_invalid(url: str) -> None:
-    assert not _has_valid_implementation(url)
+    assert not HasValidImplementation()([url])
