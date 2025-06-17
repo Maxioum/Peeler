@@ -4,6 +4,7 @@
 
 import sys
 from abc import ABC, abstractmethod
+from functools import reduce
 from os import fspath
 from pathlib import Path
 from subprocess import run
@@ -297,11 +298,7 @@ def download_wheels(wheels_directory: Path, urls: Dict[str, List[str]]) -> List[
             IsNotAlreadyDownloaded(wheels_directory),
         ]
 
-        for filter_ in filters:
-            package_urls = filter_(package_urls)
-
-        if not package_urls:
-            continue
+        package_urls = reduce(lambda acc, filter_: filter_(acc), filters, package_urls)
 
         with progressbar(package_urls, label=package_name, color=True) as _package_urls:
             wheels_paths = [
