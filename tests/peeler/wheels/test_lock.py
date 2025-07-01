@@ -1,11 +1,14 @@
 from pathlib import Path
 from typing import Set, Type
+from unittest import mock
+from unittest.mock import MagicMock, Mock
 
 import pytest
 from click import ClickException
 from pytest import fixture, mark
 from tomlkit import TOMLDocument
 
+from peeler.uv_utils import check_uv_version
 from peeler.wheels.lock import (
     AbstractURLFetcherStrategy,
     PylockUrlFetcher,
@@ -89,15 +92,26 @@ def urls() -> Set[str]:
         "https://files.pythonhosted.org/packages/3f/6b/5610004206cf7f8e7ad91c5a85a8c71b2f2f8051a0c0c4d5916b76d6cbb2/numpy-1.26.4-cp311-cp311-win_amd64.whl",
     }
 
-
 @mark.parametrize(
     "url_fetcher",
     [
         UVLockUrlFetcher(_DATA / "uv.lock"),
-        PyprojectUVLockFetcher(_DATA / "pyproject.toml"),
         PylockUrlFetcher(_DATA / "pylock.toml"),
     ],
-    ids=["uv_lock", "pyproject", "pylock"],
+    ids=["uv_lock", "pylock"],
 )
 def test_url_fetcher(url_fetcher: AbstractURLFetcherStrategy, urls: Set[str]) -> None:
     assert set(url_fetcher.get_urls()["numpy"]) == urls
+
+@mock.patch("peeler.wheels.lock.check_uv_version", new=lambda: None)
+@mark.parametrize(
+    "url_fetcher",
+    [
+        PyprojectUVLockFetcher(_DATA / "pyproject.toml"),
+    ],
+    ids=["pyproject"],
+)
+def test_url_fetcher_wo_uv_version_check(url_fetcher: AbstractURLFetcherStrategy, urls: Set[str]) -> None:
+    assert set(url_fetcher.get_urls()["numpy"]) == urls
+
+
