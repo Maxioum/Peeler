@@ -9,8 +9,8 @@ from peeler.uv_utils import check_uv_version
 
 
 @pytest.mark.skipif(
-    os.environ.get("CI-on-uv-release") is not None,
-    reason="Disable in on-uv-realease workflow",
+    not os.environ.get("CI-on-uv-release"),
+    reason="Disable in on-uv-release workflow",
 )
 def test_check_uv_version() -> None:
     try:
@@ -40,5 +40,6 @@ def test_check_uv_version_raises(mock_run: Mock, run_stdout: str) -> None:
     mock_stdout = MagicMock()
     mock_stdout.configure_mock(**{"stdout": run_stdout})
     mock_run.return_value = mock_stdout
+    
     with pytest.raises(ClickException):
         check_uv_version()
