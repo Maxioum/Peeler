@@ -9,7 +9,7 @@ from peeler.uv_utils import check_uv_version
 
 
 @pytest.mark.skipif(
-    not os.environ.get("CI-on-uv-release"),
+    os.environ.get("CI-on-uv-release") == "true",
     reason="Disable in on-uv-release workflow",
 )
 def test_check_uv_version() -> None:
