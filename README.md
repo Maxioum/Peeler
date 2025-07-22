@@ -1,6 +1,6 @@
 # Peeler – Simplify Your Blender Add-on Packaging
 
-> This package is under active development. Feel free to ask for help [here](https://github.com/Maxioum) or open an issue [here](https://github.com/Maxioum/Peeler/issues/new).
+> Feel free to ask for help [here](https://github.com/Maxioum) or open an issue [here](https://github.com/Maxioum/Peeler/issues/new).
 
 A tool to easily package your **Blender add-on**
 
