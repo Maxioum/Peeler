@@ -28,12 +28,12 @@ def pylock_file() -> TOMLDocument:
 @fixture
 def pyproject_path_with_lock(tmp_path: Path) -> Path:
     shutil.copy2(TEST_LOCK, tmp_path / TEST_LOCK.name)
-    return shutil.copy2(TEST_PYPROJECT, tmp_path / TEST_PYPROJECT.name)
+    return Path(shutil.copy2(TEST_PYPROJECT, tmp_path / TEST_PYPROJECT.name))
 
 
 @fixture
 def pyproject_path_without_lock(tmp_path: Path) -> Path:
-    return shutil.copy2(TEST_PYPROJECT, tmp_path / TEST_PYPROJECT.name)
+    return Path(shutil.copy2(TEST_PYPROJECT, tmp_path / TEST_PYPROJECT.name))
 
 
 
