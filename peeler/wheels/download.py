@@ -301,9 +301,10 @@ def download_wheels(wheels_directory: Path, urls: Dict[str, List[str]]) -> List[
         package_urls = reduce(lambda acc, filter_: filter_(acc), filters, package_urls)
 
         with progressbar(package_urls, label=package_name, color=True) as _package_urls:
-            wheels_paths = [
-                wheel_downloader.download_wheel(url, wheels_directory)
-                for url in _package_urls
-            ]
-
+            wheels_paths.extend(
+                [
+                    wheel_downloader.download_wheel(url, wheels_directory)
+                    for url in _package_urls
+                ]
+            )
     return wheels_paths
