@@ -29,7 +29,9 @@ def _find_pyproject_file(pyproject_path: Path) -> Path:
     return pyproject_path
 
 
-def manifest_command(pyproject_path: Path, blender_manifest_path: Path) -> None:
+def manifest_command(
+    pyproject_path: Path, blender_manifest_path: Path, validate: bool
+) -> None:
     """Create or update a blender_manifest.toml from a pyproject.toml.
 
     :param pyproject_path: the path to the `pyproject.toml` file or directory
@@ -40,8 +42,9 @@ def manifest_command(pyproject_path: Path, blender_manifest_path: Path) -> None:
     with Path(pyproject_path).open() as file:
         pyproject = tomlkit.load(file)
 
-    validator = PyprojectValidator(pyproject, pyproject_path)
-    validator()
+    if validate:
+        validator = PyprojectValidator(pyproject, pyproject_path)
+        validator()
 
     manifest_adapter = ManifestAdapter(
         pyproject, blender_manifest_json_schema(), peeler_json_schema()

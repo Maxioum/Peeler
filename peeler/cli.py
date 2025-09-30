@@ -5,7 +5,7 @@
 from pathlib import Path
 from typing import Annotated
 
-from typer import Argument, Typer
+from typer import Argument, Option, Typer
 
 app = Typer()
 
@@ -25,6 +25,12 @@ def version() -> None:
 def manifest(
     pyproject: Annotated[Path, Argument()],
     blender_manifest: Annotated[Path, Argument(default_factory=Path.cwd)],
+    validate: Annotated[
+        bool,
+        Option(
+            help="Validate the `pyproject.toml` file against PEP specifications (https://packaging.python.org/en/latest/specifications/pyproject-toml/)"
+        ),
+    ] = True,
 ) -> None:
     """Call a command to create or update a blender_manifest.toml from a pyproject.toml.
 
@@ -34,7 +40,7 @@ def manifest(
 
     from .command.manifest import manifest_command
 
-    manifest_command(pyproject, blender_manifest)
+    manifest_command(pyproject, blender_manifest, validate)
 
 
 @app.command(
