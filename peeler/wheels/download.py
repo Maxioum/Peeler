@@ -295,7 +295,6 @@ def download_wheels(wheels_directory: Path, urls: Dict[str, List[str]]) -> List[
     for package_name, package_urls in urls.items():
         filters: List[UrlsFilter] = [
             HasValidImplementation(package_name),
-            IsNotAlreadyDownloaded(wheels_directory),
         ]
 
         package_urls = reduce(lambda acc, filter_: filter_(acc), filters, package_urls)
