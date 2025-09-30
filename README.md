@@ -44,7 +44,7 @@ Generate the `blender_manifest.toml` from fields in a `pyproject.toml`.
 # pyproject.toml
 
 [project]
-name = "My Awesome Add on"
+name = "MyAwesomeAddon"
 version = "1.0.0"
 requires-python = "==3.11.*"
 ```
@@ -58,7 +58,7 @@ Here's a minimal working version:
 # pyproject.toml
 
 [project]
-name = "My Awesome Add on"
+name = "MyAwesomeAddon"
 version = "1.0.0"
 requires-python = "==3.11.*"
 
@@ -80,7 +80,7 @@ peeler manifest /path/to/your/pyproject.toml /path/to/blender_manifest.toml
 # Generated blender_manifest.toml
 
 version = "1.0.0"
-name = "My Awesome Add on"
+name = "MyAwesomeAddon"
 schema_version = "1.0.0"
 type = "add-on"
 blender_version_min = "4.2.0"
@@ -135,7 +135,7 @@ Then sit back and let **Peeler** handle it for you 😄
 # pyproject.toml
 
 [project]
-name = "My Awesome Add-on"
+name = "MyAwesomeAddon"
 version = "1.0.0"
 requires-python = "==3.11.*"
 
@@ -160,7 +160,7 @@ peeler wheels ./pyproject.toml ./blender_manifest.toml
 # Updated blender_manifest.toml
 
 version = "1.0.0"
-name = "My Awesome Add on"
+name = "MyAwesomeAddon"
 schema_version = "1.0.0"
 type = "add-on"
 blender_version_min = "4.2.0"
@@ -198,7 +198,7 @@ Note that the **dependencies of the dependencies** (and so on) specified in `pyp
 #    "rich>=13.9.4",
 # ]
 
-My Awesome Add on v1.0.0
+MyAwesomeAddon on v1.0.0
 ├── pillow v11.1.0
 ├── rich v13.9.4
 │   ├── markdown-it-py v3.0.0
