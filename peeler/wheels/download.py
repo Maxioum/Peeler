@@ -144,7 +144,7 @@ class IsNotAlreadyDownloaded(UrlsFilter):
         :return: True if the wheel is not already downloaded, False otherwise.
         """
         wheel_info = parse_wheel_filename(url)
-        path = self.destination_directory / str(wheel_info)
+        path = _wheel_path(self.destination_directory, wheel_info)
 
         return not path.is_file()
 
@@ -300,10 +300,12 @@ def download_wheels(wheels_directory: Path, urls: Dict[str, List[str]]) -> List[
         package_urls = reduce(lambda acc, filter_: filter_(acc), filters, package_urls)
 
         with progressbar(package_urls, label=package_name, color=True) as _package_urls:
-            wheels_paths.extend(
-                [
+            for url in _package_urls:
+                destination_path = _wheel_path(
+                    wheels_directory, parse_wheel_filename(url)
+                )
+                if not destination_path.exists():
                     wheel_downloader.download_wheel(url, wheels_directory)
-                    for url in _package_urls
-                ]
-            )
+                wheels_paths.append(destination_path)
+
     return wheels_paths
