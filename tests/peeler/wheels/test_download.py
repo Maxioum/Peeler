@@ -1,4 +1,4 @@
-from typing import Set
+from typing import List
 import pytest
 
 from peeler.wheels.download import (
@@ -183,14 +183,14 @@ def test__has_valid_implementation_invalid(url: str) -> None:
 @pytest.mark.parametrize(
     "excluded_packages",
     [
-        {"friendly-bard"},
-        {"Friendly-Bard"},
-        {"FRIENDLY-BARD"},
-        {"friendly.bard"},
-        {"friendly_bard"},
-        {"friendly--bard"},
-        {"FrIeNdLy-._.-bArD"}
+        ["friendly-bard"],
+        ["Friendly-Bard"],
+        ["FRIENDLY-BARD"],
+        ["friendly.bard"],
+        ["friendly_bard"],
+        ["friendly--bard"],
+        ["FrIeNdLy-._.-bArD"]
     ]
 )
-def test__is_excluded(package_name: str, url: str, excluded_packages: Set[str]) -> None:
+def test__is_excluded(package_name: str, url: str, excluded_packages: List[str]) -> None:
     assert PackageIsNotExcluded(package_name, excluded_packages)([url]) == []
