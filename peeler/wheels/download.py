@@ -8,13 +8,14 @@ from functools import reduce
 from os import fspath
 from pathlib import Path
 from subprocess import run
-from typing import Dict, Iterable, List, Protocol, Tuple
+from typing import Dict, Iterable, List, Optional, Protocol, Set, Tuple
 
 import typer
 from click import ClickException
 from typer import progressbar
 from wheel_filename import ParsedWheelFilename, parse_wheel_filename
 
+from peeler.utils import normalize_package_name
 from peeler.uv_utils import find_uv_bin, has_uv
 
 
@@ -158,6 +159,26 @@ class IsNotAlreadyDownloaded(UrlsFilter):
         return list(filter(self._is_downloaded, urls))
 
 
+class PackageIsNotExcluded(UrlsFilter):
+    """Filter out URLs for excluded packages.
+
+    :param package_name: Name of the package to check.
+    :param excluded_packages: Set of package names to exclude.
+    """
+
+    def __init__(self, package_name: str, excluded_packages: Set[str]) -> None:
+        self.package_name = normalize_package_name(package_name)
+        self.excluded_packages = {normalize_package_name(package_name) for package_name in excluded_packages}
+
+    def __call__(self, urls: List[str]) -> List[str]:
+        """Return URLs if the package is not excluded.
+
+        :param urls: List of wheel URLs to filter.
+        :return: List of URLs if the package is not excluded, else an empty list.
+        """
+        return urls if (self.package_name not in self.excluded_packages) else []
+
+
 class AbstractWheelsDownloader(ABC):
     """
     Abstract base class defining the interface for wheel downloaders.
@@ -279,7 +300,7 @@ class WheelsDownloaderCreator:
             return PipWheelsDownloader()
 
 
-def download_wheels(wheels_directory: Path, urls: Dict[str, List[str]]) -> List[Path]:
+def download_wheels(wheels_directory: Path, urls: Dict[str, List[str]], excluded_packages: Optional[Set[str]] = None) -> List[Path]:
     """Download the wheels from urls with pip download into wheels_directory.
 
     :param wheels_directory: The directory to download wheels into
@@ -293,9 +314,12 @@ def download_wheels(wheels_directory: Path, urls: Dict[str, List[str]]) -> List[
     wheel_downloader = WheelsDownloaderCreator().get_wheel_download_strategy()
 
     for package_name, package_urls in urls.items():
-        filters: List[UrlsFilter] = [
-            HasValidImplementation(package_name),
-        ]
+        filters: Set[UrlsFilter] = {
+            HasValidImplementation(package_name)}
+        
+        if excluded_packages:
+            filters.add(PackageIsNotExcluded(package_name, excluded_packages))
+        
 
         package_urls = reduce(lambda acc, filter_: filter_(acc), filters, package_urls)
 

@@ -1,7 +1,9 @@
+from typing import Set
 import pytest
 
 from peeler.wheels.download import (
     HasValidImplementation,
+    PackageIsNotExcluded,
     _parse_implementation_and_python_version,
 )
 
@@ -158,3 +160,37 @@ def test__has_valid_implementation(url: str) -> None:
 )
 def test__has_valid_implementation_invalid(url: str) -> None:
     assert not HasValidImplementation()([url])
+
+
+@pytest.mark.parametrize(
+        "package_name",
+        [
+            "friendly-bard"
+        ]
+)
+@pytest.mark.parametrize(
+    "url",
+    [
+        r"https://files.pythonhosted.org/packages/.../friendly-bard-1.0.0a1-ip310-abi3-macosx_11_0_arm64.whl",
+        r"https://files.pythonhosted.org/packages/.../Friendly-Bard-1.0.0-ip3-abi3-any.whl",
+        r"https://files.pythonhosted.org/packages/.../FRIENDLY-BARD-1.0.0-ip3-abi3-win_amd64.whl",
+        r"https://files.pythonhosted.org/packages/.../friendly.bard-1.0.0a1-ip3-abi3-manylinux1_x86_64.whl",
+        r"https://files.pythonhosted.org/packages/.../friendly_bard-1.0.0a1-jy3-abi3-macosx_11_0_arm64.whl",
+        r"https://files.pythonhosted.org/packages/.../friendly--bard-1.0.0a1-jy3-none-macosx_11_0_arm64.whl",
+        r"https://files.pythonhosted.org/packages/.../FrIeNdLy-._.-bArD-1.0.0a1-jy2.jy3-abi3-any.whl",
+    ],
+)
+@pytest.mark.parametrize(
+    "excluded_packages",
+    [
+        {"friendly-bard"},
+        {"Friendly-Bard"},
+        {"FRIENDLY-BARD"},
+        {"friendly.bard"},
+        {"friendly_bard"},
+        {"friendly--bard"},
+        {"FrIeNdLy-._.-bArD"}
+    ]
+)
+def test__is_excluded(package_name: str, url: str, excluded_packages: Set[str]) -> None:
+    assert PackageIsNotExcluded(package_name, excluded_packages)([url]) == []
