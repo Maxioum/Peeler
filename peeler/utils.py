@@ -8,6 +8,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from shutil import copy2
 from tempfile import TemporaryDirectory
+from re import sub
 
 import typer
 from click import ClickException
@@ -82,3 +83,14 @@ def restore_file(
         finally:
             restore_file()
             atexit.unregister(restore_file)
+
+
+def normalize_package_name(name: str) -> str:
+    """Normalize a package name for comparison.
+
+    from: https://packaging.python.org/en/latest/specifications/name-normalization/#name-normalization
+
+    :param name: the package name
+    :return: the normalized package name
+    """
+    return sub(r"[-_.]+", "-", name).lower()
