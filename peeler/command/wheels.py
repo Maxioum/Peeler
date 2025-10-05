@@ -3,7 +3,7 @@
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import typer
 from click import format_filename
@@ -142,7 +142,7 @@ def write_wheels_path(blender_manifest_path: Path, wheels_paths: List[Path]) -> 
 
 
 def wheels_command(
-    path: Path, blender_manifest_file: Path, wheels_directory: Path | None
+    path: Path, blender_manifest_file: Path, wheels_directory: Path | None, excluded_packages: Optional[List[str]] = None
 ) -> None:
     """Download wheel from pyproject dependency and write their paths to the blender manifest.
 
@@ -161,6 +161,6 @@ def wheels_command(
 
     urls = UrlFetcherCreator(path).get_fetch_url_strategy().get_urls()
 
-    wheels_paths = download_wheels(wheels_directory, urls)
+    wheels_paths = download_wheels(wheels_directory, urls, excluded_packages)
 
     write_wheels_path(blender_manifest_file, wheels_paths)

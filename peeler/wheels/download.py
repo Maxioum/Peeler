@@ -114,9 +114,13 @@ class HasValidImplementation(UrlsFilter):
         """
         Filter out URLs that do not match valid implementation tags.
 
-        :param urls: Iterable of wheel URLs to filter.
+        :param urls: List of wheel URLs to filter.
         :return: List of URLs matching the valid implementation criteria.
         """
+
+        if not urls:
+            return []
+        
         urls = list(filter(self.has_valid_implementation, urls))
 
         if not urls:
@@ -166,18 +170,23 @@ class PackageIsNotExcluded(UrlsFilter):
     :param excluded_packages: Set of package names to exclude.
     """
 
-    def __init__(self, package_name: str, excluded_packages: Set[str]) -> None:
+    def __init__(self, package_name: str, excluded_packages: List[str]) -> None:
         self.package_name = normalize_package_name(package_name)
         self.excluded_packages = {normalize_package_name(package_name) for package_name in excluded_packages}
 
-    def __call__(self, urls: List[str]) -> List[str]:
+    def __call__(self, urls: Iterable[str]) -> List[str]:
         """Return URLs if the package is not excluded.
 
         :param urls: List of wheel URLs to filter.
         :return: List of URLs if the package is not excluded, else an empty list.
         """
-        return urls if (self.package_name not in self.excluded_packages) else []
 
+        if self.package_name in self.excluded_packages:
+            msg = f"Excluded package `{self.package_name}`, not downloading."
+            typer.echo(f"Info: {msg}")
+            return []
+
+        return list(urls)
 
 class AbstractWheelsDownloader(ABC):
     """
@@ -300,7 +309,7 @@ class WheelsDownloaderCreator:
             return PipWheelsDownloader()
 
 
-def download_wheels(wheels_directory: Path, urls: Dict[str, List[str]], excluded_packages: Optional[Set[str]] = None) -> List[Path]:
+def download_wheels(wheels_directory: Path, urls: Dict[str, List[str]], excluded_packages: Optional[List[str]] = None) -> List[Path]:
     """Download the wheels from urls with pip download into wheels_directory.
 
     :param wheels_directory: The directory to download wheels into
@@ -313,6 +322,8 @@ def download_wheels(wheels_directory: Path, urls: Dict[str, List[str]], excluded
 
     wheel_downloader = WheelsDownloaderCreator().get_wheel_download_strategy()
 
+    _max_package_name_len = max((len(package_name) for package_name in urls.keys()), default=0)
+    
     for package_name, package_urls in urls.items():
         filters: Set[UrlsFilter] = {
             HasValidImplementation(package_name)}
@@ -323,7 +334,10 @@ def download_wheels(wheels_directory: Path, urls: Dict[str, List[str]], excluded
 
         package_urls = reduce(lambda acc, filter_: filter_(acc), filters, package_urls)
 
-        with progressbar(package_urls, label=package_name, color=True) as _package_urls:
+        if not package_urls:
+            continue
+        
+        with progressbar(package_urls, label=package_name.ljust(_max_package_name_len), color=True, width=_max_package_name_len) as _package_urls:
             for url in _package_urls:
                 destination_path = _wheel_path(
                     wheels_directory, parse_wheel_filename(url)
