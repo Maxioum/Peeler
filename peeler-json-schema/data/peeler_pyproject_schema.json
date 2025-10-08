@@ -807,11 +807,11 @@
                     "items": {
                         "type": "string",
                         "enum": [
-                            "windows-amd64",
-                            "macos-arm64",
-                            "linux-x86_64",
+                            "windows-x64",
                             "windows-arm64",
-                            "macos-x86_64"
+                            "linux-x64",
+                            "macos-arm64",
+                            "macos-x64"
                         ]
                     },
                     "minItems": 1,
