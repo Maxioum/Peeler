@@ -120,7 +120,7 @@ class HasValidImplementation(UrlsFilter):
 
         if not urls:
             return []
-        
+
         urls = list(filter(self.has_valid_implementation, urls))
 
         if not urls:
@@ -172,7 +172,9 @@ class PackageIsNotExcluded(UrlsFilter):
 
     def __init__(self, package_name: str, excluded_packages: List[str]) -> None:
         self.package_name = normalize_package_name(package_name)
-        self.excluded_packages = {normalize_package_name(package_name) for package_name in excluded_packages}
+        self.excluded_packages = {
+            normalize_package_name(package_name) for package_name in excluded_packages
+        }
 
     def __call__(self, urls: Iterable[str]) -> List[str]:
         """Return URLs if the package is not excluded.
@@ -187,6 +189,7 @@ class PackageIsNotExcluded(UrlsFilter):
             return []
 
         return list(urls)
+
 
 class AbstractWheelsDownloader(ABC):
     """
@@ -309,7 +312,12 @@ class WheelsDownloaderCreator:
             return PipWheelsDownloader()
 
 
-def download_wheels(wheels_directory: Path, urls: Dict[str, List[str]], excluded_packages: Optional[List[str]] = None) -> List[Path]:
+def download_wheels(
+    wheels_directory: Path,
+    urls: Dict[str, List[str]],
+    *,
+    excluded_packages: Optional[List[str]] = None,
+) -> List[Path]:
     """Download the wheels from urls with pip download into wheels_directory.
 
     :param wheels_directory: The directory to download wheels into
@@ -322,22 +330,27 @@ def download_wheels(wheels_directory: Path, urls: Dict[str, List[str]], excluded
 
     wheel_downloader = WheelsDownloaderCreator().get_wheel_download_strategy()
 
-    _max_package_name_len = max((len(package_name) for package_name in urls.keys()), default=0)
-    
+    _max_package_name_len = max(
+        (len(package_name) for package_name in urls.keys()), default=0
+    )
+
     for package_name, package_urls in urls.items():
-        filters: Set[UrlsFilter] = {
-            HasValidImplementation(package_name)}
-        
+        filters: Set[UrlsFilter] = {HasValidImplementation(package_name)}
+
         if excluded_packages:
             filters.add(PackageIsNotExcluded(package_name, excluded_packages))
-        
 
         package_urls = reduce(lambda acc, filter_: filter_(acc), filters, package_urls)
 
         if not package_urls:
             continue
-        
-        with progressbar(package_urls, label=package_name.ljust(_max_package_name_len), color=True, width=_max_package_name_len) as _package_urls:
+
+        with progressbar(
+            package_urls,
+            label=package_name.ljust(_max_package_name_len),
+            color=True,
+            width=_max_package_name_len,
+        ) as _package_urls:
             for url in _package_urls:
                 destination_path = _wheel_path(
                     wheels_directory, parse_wheel_filename(url)

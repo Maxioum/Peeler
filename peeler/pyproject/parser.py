@@ -3,11 +3,13 @@
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
 from pathlib import Path
-from typing import Self
+from typing import Dict, List, Self
 
 from tomlkit import TOMLDocument
 from tomlkit.items import Table
 from tomlkit.toml_file import TOMLFile
+
+DependencyGroups = Dict[str, List[str | Dict[str, str]]]
 
 
 class PyprojectParser:
@@ -68,3 +70,24 @@ class PyprojectParser:
         if not hasattr(self, "_manifest_table"):
             self._manifest_table = self.peeler_table.get("manifest")
         return self._manifest_table
+
+    @property
+    def dependency_groups(self) -> Table | None:
+        """Retrieve the `dependency-groups` table.
+
+        :return: The `dependency-groups` table.
+        """
+        if not hasattr(self, "_dependency_groups"):
+            self._dependency_groups = self._document.get("dependency-groups")
+
+        return self._dependency_groups
+
+    @dependency_groups.setter
+    def dependency_groups(
+        self, dependency_groups: DependencyGroups | Table | None
+    ) -> None:
+        """Set the `dependency-groups` table.
+
+        :param dependency_groups: The `dependency-groups` table.
+        """
+        self._document["dependency-groups"] = dependency_groups
