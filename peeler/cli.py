@@ -76,14 +76,14 @@ def wheels(
     exclude_dependency: Annotated[
         Optional[List[str]],
         Option(
-            help="Exclude dependency from dependencies resolution. Need a `pyproject.toml` file and uv (`https://astral.sh/blog/uv`) installed. Does not remove wheels already downloaded.",
+            help="Exclude dependency from dependencies resolution. Need a `pyproject.toml` file and uv (https://astral.sh/blog/uv) installed. Does not remove wheels already downloaded.",
             show_default=False,
         ),
     ] = None,
     exclude_dependency_groups: Annotated[
         Optional[List[str]],
         Option(
-            help="Exclude dependency group from dependencies resolution. Need a `pyproject.toml` file and uv (`https://astral.sh/blog/uv`) installed. Does not remove wheels already downloaded.",
+            help="Exclude dependency group from dependencies resolution. Need a `pyproject.toml` file and uv (https://astral.sh/blog/uv) installed. Does not remove wheels already downloaded.",
             show_default=False,
         ),
     ] = None,
