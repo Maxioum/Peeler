@@ -206,6 +206,77 @@ MyAwesomeAddon on v1.0.0
 │   └── pygments v2.18.0
 ```
 
+### Options
+
+#### Exclude a package from being downloaded
+
+Use `--exclude-package PACKAGE` to prevent wheels for this package from being downloaded.
+
+> Useful for packages already bundled with `Blender` (e.g. `numpy`) that have to be part of dependency resolution.
+
+Example:
+
+```bash
+peeler wheels --exclude-package numpy
+```
+
+This option can be used multiple times:
+
+```bash
+peeler wheels --exclude-package bpy --exclude-package numpy
+```
+
+#### Exclude a dependency from dependency resolution
+
+Use `--exclude-dependency DEPENDENCY` to prevent wheels for this dependency from being downloaded.
+
+> Useful for dependencies not used in production (e.g. `fake-bpy-module`).
+
+Example:
+
+```bash
+peeler wheels --exclude-dependency fake-bpy-module
+```
+
+This option can be used multiple times:
+
+```bash
+peeler wheels --exclude-dependency fake-bpy-module --exclude-dependency pip
+```
+
+This option requires a `pyproject.toml` file and uv (`https://astral.sh/blog/uv`)
+
+#### Exclude a dependency group from dependency resolution
+
+Use `--exclude-dependency-group DEPENDENCY_GROUP` to prevent wheels for this dependency group from being downloaded.
+
+> Useful for dependency groups not used in production.
+
+```toml
+# pyproject.toml
+
+[dependency-groups]
+docs = ["sphinx"]
+coverage = ["coverage[toml]"]
+test = ["pytest>7", {include-group = "coverage"}]
+```
+
+Example:
+
+```bash
+peeler wheels --exclude-dependency-group dev
+```
+
+This option can be used multiple times:
+
+```bash
+peeler wheels --exclude-dependency-group dev --exclude-dependency-group test
+```
+
+This option requires a `pyproject.toml` file and uv (`https://astral.sh/blog/uv`)
+
+See more on dependency groups on [python.org](https://packaging.python.org/en/latest/specifications/dependency-groups/)
+
 # Authors
 
 <!-- markdownlint-disable MD013 -->
