@@ -4,20 +4,23 @@
 
 import re
 from abc import ABC, abstractmethod
-from collections import OrderedDict
 from collections.abc import Generator
 from contextlib import contextmanager
 from os import fspath
 from pathlib import Path
 from subprocess import run
-from typing import Dict, List, Type
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 from click import ClickException, format_filename
 from tomlkit import TOMLDocument
 from tomlkit.toml_file import TOMLFile
 
 from peeler.pyproject.parser import PyprojectParser
-from peeler.pyproject.update import update_requires_python
+from peeler.pyproject.update import (
+    update_dependencies,
+    update_dependency_groups,
+    update_requires_python,
+)
 from peeler.utils import restore_file
 from peeler.uv_utils import check_uv_version, find_uv_bin
 
@@ -113,7 +116,7 @@ class AbstractURLFetcherStrategy(ABC):
     :param path: Path to the file where the URLs to be parsed or retrieved are.
     """
 
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path, *arg: Any, **kwargs: Any) -> None:
         pass
 
     @abstractmethod
@@ -164,8 +167,16 @@ class PyprojectUVLockFetcher(AbstractURLFetcherStrategy):
     :param pyproject: Path to the pyproject.toml file to process.
     """
 
-    def __init__(self, pyproject: Path):
+    def __init__(
+        self,
+        pyproject: Path,
+        *,
+        excluded_dependencies: Optional[List[str]] = None,
+        excluded_dependency_groups: Optional[List[str]] = None,
+    ):
         self.pyproject = pyproject
+        self.excluded_dependencies = excluded_dependencies
+        self.excluded_dependency_groups = excluded_dependency_groups
 
     def get_urls(self) -> Dict[str, List[str]]:
         """Extract wheel URLs from the dependencies listed in pyproject.toml.
@@ -184,6 +195,12 @@ class PyprojectUVLockFetcher(AbstractURLFetcherStrategy):
             file = TOMLFile(self.pyproject)
             pyproject = PyprojectParser(file.read())
             pyproject = update_requires_python(pyproject)
+            if self.excluded_dependencies:
+                pyproject = update_dependencies(pyproject, self.excluded_dependencies)
+            if self.excluded_dependency_groups:
+                pyproject = update_dependency_groups(
+                    pyproject, self.excluded_dependency_groups
+                )
             file.write(pyproject._document)
 
             # Generate a uv.lock file and extract wheel URLs
@@ -227,21 +244,22 @@ class UrlFetcherCreator:
     """
 
     # The order of patterns matters (checked top to bottom)
-    regexes_to_strategy: OrderedDict[str, Type[AbstractURLFetcherStrategy]] = (
-        OrderedDict(
-            {
-                r"^pylock.toml$": PylockUrlFetcher,
-                r"^pylock\.[^.]+\.toml$": PylockUrlFetcher,
-                r"^pyproject\.toml$": PyprojectUVLockFetcher,
-                r"^uv\.lock$": UVLockUrlFetcher,
-            }
-        )
-    )
+    regexes_to_strategy: List[Tuple[str, Type[AbstractURLFetcherStrategy]]] = [
+        (r"^pylock.toml$", PylockUrlFetcher),
+        (r"^pylock\.[^.]+\.toml$", PylockUrlFetcher),
+        (r"^pyproject\.toml$", PyprojectUVLockFetcher),
+        (r"^uv\.lock$", UVLockUrlFetcher),
+    ]
 
     def __init__(self, path: Path) -> None:
         self.path = path
 
-    def get_fetch_url_strategy(self) -> AbstractURLFetcherStrategy:
+    def get_fetch_url_strategy(
+        self,
+        *,
+        excluded_dependencies: Optional[List[str]] = None,
+        excluded_dependency_groups: Optional[List[str]] = None,
+    ) -> AbstractURLFetcherStrategy:
         """Select and return the appropriate URL fetcher strategy based on the given file or directory.
 
         If the path is a file, check whether it matches one of the known patterns.
@@ -253,20 +271,36 @@ class UrlFetcherCreator:
 
         files = (self.path,) if not self.path.is_dir() else self.path.iterdir()
 
-        for filepath in files:
-            for regex, strategy in self.regexes_to_strategy.items():
+        if has_excluded_dependencies := bool(
+            excluded_dependencies or excluded_dependency_groups
+        ):
+            # if there are excluded dependencies need to have a pyproject.toml file
+            regex, strategy = self.regexes_to_strategy[2]
+            for filepath in files:
                 if re.match(regex, filepath.name):
-                    return strategy(filepath)
+                    return strategy(
+                        filepath,
+                        excluded_dependencies=excluded_dependencies,
+                        excluded_dependency_groups=excluded_dependency_groups,
+                    )
+        else:
+            for regex, strategy in self.regexes_to_strategy:
+                for filepath in files:
+                    if re.match(regex, filepath.name):
+                        return strategy(filepath)
 
         if self.path.is_dir():
             msg = f"No supported file found in {format_filename(self.path.resolve())}."
         else:
             msg = f"The file {format_filename(self.path.resolve())} is not a supported type."
 
-        raise ClickException(
-            f"{msg}\n"
+        if has_excluded_dependencies:
+            msg = f"{msg}\n Expected a `pyproject.toml` file to exclude dependencies"
+        else:
+            msg = f"{msg}\n"
             f"Expected one of the following:\n"
             f"  - pylock.toml or pylock.*.toml\n"
             f"  - uv.lock\n"
             f"  - pyproject.toml"
-        )
+
+        raise ClickException(msg)

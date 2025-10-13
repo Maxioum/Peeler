@@ -66,16 +66,40 @@ def wheels(
             help="Directory where wheels will be downloaded (defaults to a sibling directory of the given manifest).",
         ),
     ] = None,
-    exclude_package: Annotated[Optional[List[str]], Option(
-        help="Exclude package from being downloaded. Can be used multiple time. Does not remove wheels already downloaded.",
-        show_default=False
-    )] = None
+    exclude_package: Annotated[
+        Optional[List[str]],
+        Option(
+            help="Exclude package from being downloaded. Can be used multiple time. Does not remove wheels already downloaded.",
+            show_default=False,
+        ),
+    ] = None,
+    exclude_dependency: Annotated[
+        Optional[List[str]],
+        Option(
+            help="Exclude dependency from dependencies resolution. Need a `pyproject.toml` file and uv (`https://astral.sh/blog/uv`) installed. Does not remove wheels already downloaded.",
+            show_default=False,
+        ),
+    ] = None,
+    exclude_dependency_groups: Annotated[
+        Optional[List[str]],
+        Option(
+            help="Exclude dependency group from dependencies resolution. Need a `pyproject.toml` file and uv (`https://astral.sh/blog/uv`) installed. Does not remove wheels already downloaded.",
+            show_default=False,
+        ),
+    ] = None,
 ) -> None:
     """Download wheels and write their paths to the Blender manifest."""
 
     from .command.wheels import wheels_command
-    
-    wheels_command(path, manifest, wheels_dir, exclude_package)
+
+    wheels_command(
+        path,
+        manifest,
+        wheels_dir,
+        exclude_package,
+        exclude_dependency,
+        exclude_dependency_groups,
+    )
 
 
 if __name__ == "__main__":

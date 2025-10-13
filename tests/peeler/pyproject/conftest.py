@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import tomlkit
 from pytest import FixtureRequest, fixture
@@ -8,11 +8,27 @@ from tomlkit.items import Table
 from tomlkit.toml_file import TOMLFile
 
 from peeler.pyproject.manifest_adapter import ManifestAdapter
-from peeler.pyproject.parser import PyprojectParser
+from peeler.pyproject.parser import DependencyGroups, PyprojectParser
 from peeler.pyproject.validator import PyprojectValidator
 
 TEST_DATA_DIR = Path(__file__).parent / "data"
 PYPROJECT_MINIMAL = TEST_DATA_DIR / "pyproject_no_peeler_table.toml"
+
+
+@fixture
+def pyproject_dependencies(request: FixtureRequest) -> PyprojectParser:
+    key = "dependencies"
+
+    pyproject = PyprojectParser(TOMLFile(PYPROJECT_MINIMAL).read())
+
+    dependencies: List[str] | None = request.param
+
+    if dependencies is not None:
+        pyproject.project_table.update({key: list(request.param)})
+    elif key in pyproject.project_table:
+        del pyproject.project_table[key]
+
+    return pyproject
 
 
 @fixture
@@ -27,6 +43,17 @@ def pyproject_requires_python(request: FixtureRequest) -> PyprojectParser:
         pyproject.project_table.update({key: str(request.param)})
     elif key in pyproject.project_table:
         del pyproject.project_table[key]
+
+    return pyproject
+
+
+@fixture
+def pyproject_dependency_groups(request: FixtureRequest) -> PyprojectParser:
+    pyproject = PyprojectParser(TOMLFile(PYPROJECT_MINIMAL).read())
+
+    dependency_groups: DependencyGroups | None = request.param
+
+    pyproject.dependency_groups = dependency_groups
 
     return pyproject
 

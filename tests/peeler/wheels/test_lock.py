@@ -59,6 +59,7 @@ _DATA = Path(__file__).parent / "data"
         (_DATA / "uv.lock", UVLockUrlFetcher),
         (_DATA / "pylock.toml", PylockUrlFetcher),
         (_DATA / "pylock.test.toml", PylockUrlFetcher),
+        (_DATA, PylockUrlFetcher),
     ],
     indirect=["url_fetcher_creator"],
 )
@@ -79,6 +80,39 @@ def test_url_fetcher_creator_get_fetch_url_strategy_raise_file(tmp_path: Path) -
         UrlFetcherCreator(tmp_path / "non_existent.file").get_fetch_url_strategy()
 
 
+@mark.parametrize(
+    ("url_fetcher_creator", "expected_strategy"),
+    [
+        (_DATA / "pyproject.toml", PyprojectUVLockFetcher),
+    ],
+    indirect=["url_fetcher_creator"],
+)
+def test_url_fetcher_creator_get_fetch_url_strategy_with_excluded_dependencies(
+    url_fetcher_creator: UrlFetcherCreator,
+    expected_strategy: Type[AbstractURLFetcherStrategy],
+) -> None:
+    assert isinstance(
+        url_fetcher_creator.get_fetch_url_strategy(excluded_dependencies=["package1"]),
+        expected_strategy,
+    )
+
+
+@mark.parametrize(
+    ("url_fetcher_creator"),
+    [
+        (_DATA / "uv.lock"),
+        (_DATA / "pylock.toml"),
+        (_DATA / "pylock.test.toml"),
+    ],
+    indirect=["url_fetcher_creator"],
+)
+def test_url_fetcher_creator_get_fetch_url_strategy_with_excluded_dependencies_raise(
+    url_fetcher_creator: UrlFetcherCreator,
+) -> None:
+    with pytest.raises(ClickException, match="Expected a `pyproject.toml` file"):
+        url_fetcher_creator.get_fetch_url_strategy(excluded_dependencies=["package1"])
+
+
 @fixture
 def urls() -> Set[str]:
     return {
@@ -92,6 +126,7 @@ def urls() -> Set[str]:
         "https://files.pythonhosted.org/packages/3f/6b/5610004206cf7f8e7ad91c5a85a8c71b2f2f8051a0c0c4d5916b76d6cbb2/numpy-1.26.4-cp311-cp311-win_amd64.whl",
     }
 
+
 @mark.parametrize(
     "url_fetcher",
     [
@@ -103,6 +138,7 @@ def urls() -> Set[str]:
 def test_url_fetcher(url_fetcher: AbstractURLFetcherStrategy, urls: Set[str]) -> None:
     assert set(url_fetcher.get_urls()["numpy"]) == urls
 
+
 @mock.patch("peeler.wheels.lock.check_uv_version", new=lambda: None)
 @mark.parametrize(
     "url_fetcher",
@@ -111,7 +147,7 @@ def test_url_fetcher(url_fetcher: AbstractURLFetcherStrategy, urls: Set[str]) ->
     ],
     ids=["pyproject"],
 )
-def test_url_fetcher_wo_uv_version_check(url_fetcher: AbstractURLFetcherStrategy, urls: Set[str]) -> None:
+def test_url_fetcher_wo_uv_version_check(
+    url_fetcher: AbstractURLFetcherStrategy, urls: Set[str]
+) -> None:
     assert set(url_fetcher.get_urls()["numpy"]) == urls
-
-
