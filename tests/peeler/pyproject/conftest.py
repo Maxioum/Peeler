@@ -12,14 +12,15 @@ from peeler.pyproject.parser import DependencyGroups, PyprojectParser
 from peeler.pyproject.validator import PyprojectValidator
 
 TEST_DATA_DIR = Path(__file__).parent / "data"
-PYPROJECT_MINIMAL = TEST_DATA_DIR / "pyproject_no_peeler_table.toml"
+PYPROJECT_NO_PEELER_TABLE = TEST_DATA_DIR / "pyproject_no_peeler_table.toml"
+PYPROJECT_MINIMAL = TEST_DATA_DIR / "pyproject_minimal.toml"
 
 
 @fixture
 def pyproject_dependencies(request: FixtureRequest) -> PyprojectParser:
     key = "dependencies"
 
-    pyproject = PyprojectParser(TOMLFile(PYPROJECT_MINIMAL).read())
+    pyproject = PyprojectParser(TOMLFile(PYPROJECT_NO_PEELER_TABLE).read())
 
     dependencies: List[str] | None = request.param
 
@@ -35,7 +36,7 @@ def pyproject_dependencies(request: FixtureRequest) -> PyprojectParser:
 def pyproject_requires_python(request: FixtureRequest) -> PyprojectParser:
     key = "requires-python"
 
-    pyproject = PyprojectParser(TOMLFile(PYPROJECT_MINIMAL).read())
+    pyproject = PyprojectParser(TOMLFile(PYPROJECT_NO_PEELER_TABLE).read())
 
     requires_python: str | None = request.param
 
@@ -49,11 +50,27 @@ def pyproject_requires_python(request: FixtureRequest) -> PyprojectParser:
 
 @fixture
 def pyproject_dependency_groups(request: FixtureRequest) -> PyprojectParser:
-    pyproject = PyprojectParser(TOMLFile(PYPROJECT_MINIMAL).read())
+    pyproject = PyprojectParser(TOMLFile(PYPROJECT_NO_PEELER_TABLE).read())
 
     dependency_groups: DependencyGroups | None = request.param
 
     pyproject.dependency_groups = dependency_groups
+
+    return pyproject
+
+
+@fixture
+def pyproject_platforms(request: FixtureRequest) -> PyprojectParser:
+    key = "platforms"
+
+    pyproject = PyprojectParser(TOMLFile(PYPROJECT_MINIMAL).read())
+
+    platforms: List[str] | None = request.param
+
+    if platforms is not None:
+        pyproject.manifest_table.update({key: request.param})
+    elif key in pyproject.manifest_table:
+        del pyproject.manifest_table[key]
 
     return pyproject
 
