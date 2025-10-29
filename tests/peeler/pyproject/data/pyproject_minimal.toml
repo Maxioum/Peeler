@@ -9,3 +9,4 @@ id = "test_pyproject"
 license = ["SPDX:0BSD"]
 maintainer = "John Smith"
 tagline = "a pyproject for testing purposes"
+platforms = ["linux-x64"]
