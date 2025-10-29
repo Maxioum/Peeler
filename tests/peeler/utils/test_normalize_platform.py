@@ -29,7 +29,7 @@ def test_schema_supported_platfrom() -> None:
             ("windows-x64", ("win", "amd64")),
             ("windows-arm64", ("win", "32")),
             ("linux-x64", ("manylinux", "x86_64")),
-            ("macos-arm64", ("macosx", "amd64")),
+            ("macos-arm64", ("macosx", "arm64")),
             ("macos-x64", ("macosx", "x86_64")),
         ]
     ),

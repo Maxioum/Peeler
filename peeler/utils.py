@@ -101,7 +101,7 @@ _BLENDER_TO_WHEEL_PLATFORM_TAGS: Dict[str, Tuple[str, str]] = {
     "windows-x64": ("win", "amd64"),
     "windows-arm64": ("win", "32"),
     "linux-x64": ("manylinux", "x86_64"),  # muslinux not supported by blender,
-    "macos-arm64": ("macosx", "amd64"),
+    "macos-arm64": ("macosx", "arm64"),
     "macos-x64": ("macosx", "x86_64"),
 }
 
@@ -168,6 +168,3 @@ def normalize_package_platform_tag(
         _raise()
 
     return platform, version, arch
-
-
-normalize_package_platform_tag("macosx_11_0_arm64")
