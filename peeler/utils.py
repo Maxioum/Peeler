@@ -6,9 +6,10 @@ import atexit
 from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
+from re import sub
 from shutil import copy2
 from tempfile import TemporaryDirectory
-from re import sub
+from typing import Dict, NoReturn, Tuple
 
 import typer
 from click import ClickException
@@ -94,3 +95,79 @@ def normalize_package_name(name: str) -> str:
     :return: the normalized package name
     """
     return sub(r"[-_.]+", "-", name).lower()
+
+
+_BLENDER_TO_WHEEL_PLATFORM_TAGS: Dict[str, Tuple[str, str]] = {
+    "windows-x64": ("win", "amd64"),
+    "windows-arm64": ("win", "32"),
+    "linux-x64": ("manylinux", "x86_64"),  # muslinux not supported by blender,
+    "macos-arm64": ("macosx", "amd64"),
+    "macos-x64": ("macosx", "x86_64"),
+}
+
+
+def normalize_blender_supported_platform(platform: str) -> Tuple[str, str]:
+    """Normalize a platform from blender manifest supported platfrom.
+
+    from: https://docs.blender.org/manual/en/latest/advanced/extensions/getting_started.html#manifest
+
+    :param platform: the platform string
+    :return: a tuple with platform and arch
+    """
+
+    if (_platform := _BLENDER_TO_WHEEL_PLATFORM_TAGS.get(platform, None)) is None:
+        raise ClickException(
+            f"""Invalid platform: `{platform}` .
+Expected one the following platform:
+{" ".join([f"`{platform_}`" for platform_ in _BLENDER_TO_WHEEL_PLATFORM_TAGS.keys()])}
+see https://docs.blender.org/manual/en/latest/advanced/extensions/getting_started.html#manifest """
+        )
+
+    return _platform
+
+
+import re
+
+PLATFORM_REGEX = re.compile(
+    r"^(?P<platform>macosx|manylinux|musllinux|win|linux|any)"
+    r"(?:[_\-]?(?P<version>\d+(?:[_\-]\d+)*))?"  # version ex: 11_0, 2014, 2_17
+    r"(?:[_\-](?P<arch>[A-Za-z0-9_]+))?$"  # arch ex: x86_64, arm64, amd64
+)
+
+
+def normalize_package_platform_tag(
+    platform_tag: str,
+) -> Tuple[str, str | None, str | None]:
+    """Normalize a platform tag from a wheel url.
+
+    from: https://packaging.python.org/en/latest/specifications/platform-compatibility-tags/#platform-tag
+
+    :param platform: the platform tag
+    :return: a tuple with platform optional version number and arch
+    """
+
+    if platform_tag == "win32":  # special case
+        return ("win", None, "32")
+
+    def _raise() -> NoReturn:
+        raise ClickException(f"""Invalid platform tag: `{platform_tag}` .""")
+
+    if (match_ := PLATFORM_REGEX.match(platform_tag)) is None:
+        _raise()
+    if len(groups_ := match_.groups(default=None)) != 3:
+        _raise()
+
+    platform, version, arch = groups_
+
+    if platform == "any":
+        if version or arch:
+            _raise()
+        return platform, version, arch
+
+    if not platform or not arch:
+        _raise()
+
+    return platform, version, arch
+
+
+normalize_package_platform_tag("macosx_11_0_arm64")
