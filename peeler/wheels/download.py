@@ -15,7 +15,11 @@ from click import ClickException
 from typer import progressbar
 from wheel_filename import ParsedWheelFilename, parse_wheel_filename
 
-from peeler.utils import normalize_package_name
+from peeler.utils import (
+    normalize_blender_supported_platform,
+    normalize_package_name,
+    normalize_package_platform_tag,
+)
 from peeler.uv_utils import find_uv_bin, has_uv
 
 
@@ -191,6 +195,59 @@ class PackageIsNotExcluded(UrlsFilter):
         return list(urls)
 
 
+class PlatformIsNotExcluded(UrlsFilter):
+    """Filter out urls not supported by the given platforms.
+
+    The platform have to be in the form of blender manifest:
+
+    `windows-x64`
+    `windows-arm64`
+    `linux-x64`
+    `macos-arm64`
+    `macos-x64`
+
+    :param platforms: List of supported platforms.
+    """
+
+    def __init__(self, platforms: List[str]) -> None:
+        self.platforms_arch = {
+            normalize_blender_supported_platform(platform) for platform in platforms
+        }
+
+    def _is_supported_platform(self, url: str) -> bool:
+        wheel_info = parse_wheel_filename(url)
+
+        for platform_tag in wheel_info.platform_tags:
+            platform, version, arch = normalize_package_platform_tag(platform_tag)
+
+            if (platform, arch) in self.platforms_arch:
+                return True
+        return False
+
+    def __call__(self, urls: Iterable[str]) -> List[str]:
+        """Return URLs corresponding to the given platforms.
+
+        Return all urls if no platform where given.
+
+        :param urls: List of wheel URLs to filter.
+        :return: List of filtered urls
+        """
+        if not urls:
+            return []
+        if not self.platforms_arch:
+            return list(urls)
+
+        package_names = {parse_wheel_filename(url).project for url in urls}
+
+        urls = list(filter(self._is_supported_platform, urls))
+
+        if not urls:
+            msg = f"No suitable platform found for {' '.join(package_names)}, not downloading."
+            typer.echo(f"Warning: {msg}")
+
+        return urls
+
+
 class AbstractWheelsDownloader(ABC):
     """
     Abstract base class defining the interface for wheel downloaders.
@@ -317,11 +374,14 @@ def download_wheels(
     urls: Dict[str, List[str]],
     *,
     excluded_packages: Optional[List[str]] = None,
+    supported_platforms: Optional[List[str]] = None,
 ) -> List[Path]:
     """Download the wheels from urls with pip download into wheels_directory.
 
     :param wheels_directory: The directory to download wheels into
     :param urls: A Dict with package name as key and a list of package urls as values.
+    :param excluded_packages: packages excluded from being downloaded
+    :param supported_platforms: only download wheels for theses platforms
     :return: the list of the downloaded wheels path
     """
     wheels_directory.mkdir(parents=True, exist_ok=True)
@@ -339,6 +399,9 @@ def download_wheels(
 
         if excluded_packages:
             filters.add(PackageIsNotExcluded(package_name, excluded_packages))
+
+        if supported_platforms:
+            filters.add(PlatformIsNotExcluded(supported_platforms))
 
         package_urls = reduce(lambda acc, filter_: filter_(acc), filters, package_urls)
 

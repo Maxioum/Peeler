@@ -1,9 +1,11 @@
 from typing import List
+
 import pytest
 
 from peeler.wheels.download import (
     HasValidImplementation,
     PackageIsNotExcluded,
+    PlatformIsNotExcluded,
     _parse_implementation_and_python_version,
 )
 
@@ -162,12 +164,7 @@ def test__has_valid_implementation_invalid(url: str) -> None:
     assert not HasValidImplementation()([url])
 
 
-@pytest.mark.parametrize(
-        "package_name",
-        [
-            "friendly-bard"
-        ]
-)
+@pytest.mark.parametrize("package_name", ["friendly-bard"])
 @pytest.mark.parametrize(
     "url",
     [
@@ -189,8 +186,74 @@ def test__has_valid_implementation_invalid(url: str) -> None:
         ["friendly.bard"],
         ["friendly_bard"],
         ["friendly--bard"],
-        ["FrIeNdLy-._.-bArD"]
-    ]
+        ["FrIeNdLy-._.-bArD"],
+    ],
 )
-def test__is_excluded(package_name: str, url: str, excluded_packages: List[str]) -> None:
+def test__is_excluded(
+    package_name: str, url: str, excluded_packages: List[str]
+) -> None:
     assert PackageIsNotExcluded(package_name, excluded_packages)([url]) == []
+
+
+@pytest.mark.parametrize(
+    ("supported_platform", "url"),
+    (
+        [
+            (
+                [],
+                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1+cpu-jy2.jy3-none-win_amd64.whl",
+            ),
+            (
+                ["windows-x64"],
+                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1+cpu-jy2.jy3-none-win_amd64.whl",
+            ),
+            (
+                ["windows-arm64"],
+                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-cp310-abi3-win32.whl",
+            ),
+            (
+                ["linux-x64"],
+                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-ip3-abi3-manylinux1_x86_64.whl",
+            ),
+            (
+                ["macos-arm64"],
+                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-jy3-none-macosx_11_0_arm64.whl",
+            ),
+            (
+                ["macos-x64"],
+                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0-cp312-cp312-macosx_10_12_x86_64.whl",
+            ),
+            (
+                ["macos-x64", "linux-x64"],
+                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0-cp312-cp312-macosx_10_12_x86_64.whl",
+            ),
+            (
+                ["windows-arm64", "linux-x64"],
+                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-cp310-abi3-win32.whl",
+            ),
+        ]
+    ),
+)
+def test_PlatformIsNotExcluded(supported_platform: List[str], url: str) -> None:
+    assert PlatformIsNotExcluded(supported_platform)([url]) == [url]
+
+
+@pytest.mark.parametrize(
+    ("supported_platform", "url"),
+    (
+        [
+            (
+                ["macos-x64"],
+                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1+cpu-jy2.jy3-none-win_amd64.whl",
+            ),
+            (
+                ["linux-x64"],
+                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0-cp313-cp313-musllinux_1_2_aarch64.whl",
+            ),
+        ]
+    ),
+)
+def test_PlatformIsNotExcluded_platform_excluded(
+    supported_platform: List[str], url: str
+) -> None:
+    assert PlatformIsNotExcluded(supported_platform)([url]) == []
