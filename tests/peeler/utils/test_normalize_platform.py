@@ -7,8 +7,8 @@ from pytest import mark
 from peeler.schema import blender_manifest_json_schema
 from peeler.utils import (
     _BLENDER_TO_WHEEL_PLATFORM_TAGS,
-    normalize_blender_supported_platform,
-    normalize_package_platform_tag,
+    parse_blender_supported_platform,
+    parse_package_platform_tag,
 )
 
 
@@ -37,7 +37,7 @@ def test_schema_supported_platfrom() -> None:
 def test_normalize_blender_supported_platform(
     platform: str, expected_result: Tuple[str, str]
 ) -> None:
-    assert normalize_blender_supported_platform(platform) == expected_result
+    assert parse_blender_supported_platform(platform) == expected_result
 
 
 @mark.parametrize(
@@ -52,7 +52,7 @@ def test_normalize_blender_supported_platform(
 )
 def test_normalize_blender_supported_platform_raises(platform: str) -> None:
     with pytest.raises(ClickException):
-        normalize_blender_supported_platform(platform)
+        parse_blender_supported_platform(platform)
 
 
 @pytest.mark.parametrize(
@@ -94,7 +94,7 @@ def test_normalize_blender_supported_platform_raises(platform: str) -> None:
 def test_normalize_package_platform_tag(
     platform_tag: str, expected_result: Tuple[str, str | None, str | None]
 ) -> None:
-    assert normalize_package_platform_tag(platform_tag) == expected_result
+    assert parse_package_platform_tag(platform_tag) == expected_result
 
 
 @mark.parametrize(
@@ -130,4 +130,4 @@ def test_normalize_package_platform_tag(
 )
 def test_normalize_package_platform_tag_raises(platform_tag: str) -> None:
     with pytest.raises(ClickException):
-        normalize_package_platform_tag(platform_tag)
+        parse_package_platform_tag(platform_tag)

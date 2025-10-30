@@ -16,9 +16,9 @@ from typer import progressbar
 from wheel_filename import ParsedWheelFilename, parse_wheel_filename
 
 from peeler.utils import (
-    normalize_blender_supported_platform,
     normalize_package_name,
-    normalize_package_platform_tag,
+    parse_blender_supported_platform,
+    parse_package_platform_tag,
 )
 from peeler.uv_utils import find_uv_bin, has_uv
 
@@ -211,14 +211,14 @@ class PlatformIsNotExcluded(UrlsFilter):
 
     def __init__(self, platforms: List[str]) -> None:
         self.platforms_arch = {
-            normalize_blender_supported_platform(platform) for platform in platforms
+            parse_blender_supported_platform(platform) for platform in platforms
         }
 
     def _is_supported_platform(self, url: str) -> bool:
         wheel_info = parse_wheel_filename(url)
 
         for platform_tag in wheel_info.platform_tags:
-            platform, version, arch = normalize_package_platform_tag(platform_tag)
+            platform, version, arch = parse_package_platform_tag(platform_tag)
 
             if (platform, arch) in self.platforms_arch:
                 return True
