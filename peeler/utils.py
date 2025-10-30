@@ -106,7 +106,7 @@ _BLENDER_TO_WHEEL_PLATFORM_TAGS: Dict[str, Tuple[str, str]] = {
 }
 
 
-def normalize_blender_supported_platform(platform: str) -> Tuple[str, str]:
+def parse_blender_supported_platform(platform: str) -> Tuple[str, str]:
     """Normalize a platform from blender manifest supported platfrom.
 
     from: https://docs.blender.org/manual/en/latest/advanced/extensions/getting_started.html#manifest
@@ -135,7 +135,7 @@ PLATFORM_REGEX = re.compile(
 )
 
 
-def normalize_package_platform_tag(
+def parse_package_platform_tag(
     platform_tag: str,
 ) -> Tuple[str, str | None, str | None]:
     """Normalize a platform tag from a wheel url.
