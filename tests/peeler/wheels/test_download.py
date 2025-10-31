@@ -196,64 +196,107 @@ def test__is_excluded(
 
 
 @pytest.mark.parametrize(
-    ("supported_platform", "url"),
+    ("supported_platform", "urls"),
     (
         [
             (
                 [],
-                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1+cpu-jy2.jy3-none-win_amd64.whl",
+                [
+                    r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1+cpu-jy2.jy3-none-win_amd64.whl"
+                ],
             ),
             (
                 ["windows-x64"],
-                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1+cpu-jy2.jy3-none-win_amd64.whl",
+                [
+                    r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1+cpu-jy2.jy3-none-win_amd64.whl"
+                ],
             ),
             (
                 ["windows-arm64"],
-                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-cp310-abi3-win32.whl",
+                [
+                    r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-cp310-abi3-win32.whl"
+                ],
             ),
             (
                 ["linux-x64"],
-                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-ip3-abi3-manylinux1_x86_64.whl",
+                [
+                    r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-ip3-abi3-manylinux1_x86_64.whl"
+                ],
             ),
             (
                 ["macos-arm64"],
-                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-jy3-none-macosx_11_0_arm64.whl",
+                [
+                    r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-jy3-none-macosx_11_0_arm64.whl"
+                ],
             ),
             (
                 ["macos-x64"],
-                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0-cp312-cp312-macosx_10_12_x86_64.whl",
+                [
+                    r"https://files.pythonhosted.org/packages/.../packagename-1.0.0-cp312-cp312-macosx_10_12_x86_64.whl"
+                ],
             ),
             (
                 ["macos-x64", "linux-x64"],
-                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0-cp312-cp312-macosx_10_12_x86_64.whl",
+                [
+                    r"https://files.pythonhosted.org/packages/.../packagename-1.0.0-cp312-cp312-macosx_10_12_x86_64.whl"
+                ],
             ),
             (
                 ["windows-arm64", "linux-x64"],
-                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-cp310-abi3-win32.whl",
+                [
+                    r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-cp310-abi3-win32.whl"
+                ],
             ),
         ]
     ),
 )
-def test_PlatformIsNotExcluded(supported_platform: List[str], url: str) -> None:
-    assert PlatformIsNotExcluded(supported_platform)([url]) == [url]
+def test_PlatformIsNotExcluded(supported_platform: List[str], urls: List[str]) -> None:
+    assert PlatformIsNotExcluded(supported_platform)(urls) == urls
 
 
 @pytest.mark.parametrize(
-    ("supported_platform", "url"),
+    ("supported_platform", "urls"),
     (
         [
             (
                 ["macos-x64"],
-                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1+cpu-jy2.jy3-none-win_amd64.whl",
+                [
+                    r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1+cpu-jy2.jy3-none-win_amd64.whl"
+                ],
             ),
             (
                 ["linux-x64"],
-                r"https://files.pythonhosted.org/packages/.../packagename-1.0.0-cp313-cp313-musllinux_1_2_aarch64.whl",
+                [
+                    r"https://files.pythonhosted.org/packages/.../packagename-1.0.0-cp313-cp313-musllinux_1_2_aarch64.whl"
+                ],
             ),
         ]
     ),
 )
 def test_PlatformIsNotExcluded_platform_excluded(
-    supported_platform: List[str], url: str
+    supported_platform: List[str], urls: List[str]
 ) -> None:
-    assert PlatformIsNotExcluded(supported_platform)([url]) == []
+    assert PlatformIsNotExcluded(supported_platform)(urls) == []
+
+
+@pytest.mark.parametrize(
+    ("supported_platform", "urls", "expected_urls"),
+    (
+        [
+            (
+                ["macos-x64", "linux-x64"],
+                [
+                    r"https://files.pythonhosted.org/packages/.../packagename-1.0.0-cp312-cp312-macosx_10_12_x86_64.whl",
+                    r"https://files.pythonhosted.org/packages/.../packagename-1.0.0a1-cp310-abi3-win32.whl",
+                ],
+                [
+                    r"https://files.pythonhosted.org/packages/.../packagename-1.0.0-cp312-cp312-macosx_10_12_x86_64.whl"
+                ],
+            ),
+        ]
+    ),
+)
+def test_PlatformIsNotExcluded_platform_mixed(
+    supported_platform: List[str], urls: List[str], expected_urls: List[str]
+) -> None:
+    assert PlatformIsNotExcluded(supported_platform)(urls) == expected_urls

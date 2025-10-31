@@ -218,10 +218,13 @@ class PlatformIsNotExcluded(UrlsFilter):
         wheel_info = parse_wheel_filename(url)
 
         for platform_tag in wheel_info.platform_tags:
-            platform, version, arch = parse_package_platform_tag(platform_tag)
+            if platform_tag == "any":
+                return True
 
+            platform, version, arch = parse_package_platform_tag(platform_tag)
             if (platform, arch) in self.platforms_arch:
                 return True
+
         return False
 
     def __call__(self, urls: Iterable[str]) -> List[str]:
