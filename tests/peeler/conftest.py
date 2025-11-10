@@ -1,14 +1,22 @@
-from typing import Dict, Any
-from pytest import FixtureRequest, fixture
-from pathlib import Path
+import builtins
 import json
+import sys
+from pathlib import Path
+from typing import Any, Dict
 
 import tomlkit
+import typer
+from pytest import FixtureRequest, MonkeyPatch, fixture
 from tomlkit import TOMLDocument
 
 from peeler import DATA_DIR
 
 TEST_DATA_DIR = Path(__file__).parent / "data"
+
+
+@fixture(autouse=(sys.platform == "win32"))
+def mock_typer_echo(monkeypatch: MonkeyPatch) -> None:
+    monkeypatch.setattr(typer, "echo", builtins.print)
 
 
 @fixture
