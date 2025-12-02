@@ -40,7 +40,8 @@ select = [
   'PD', # pandas
   "PTH",
   "D",
-  "I" # isort
+  "I", # isort
+  "F"
 ]
 
 ignore = [
