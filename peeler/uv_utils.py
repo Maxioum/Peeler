@@ -4,17 +4,18 @@
 
 import re
 import shutil
+from importlib.util import find_spec
 from os import PathLike, fspath
 from pathlib import Path
 from subprocess import run
+from typing import Literal, overload
 
 from click import ClickException
 from packaging.version import Version
-from typing import Literal, overload
 
-from peeler import MAX_UV_VERSION, MIN_UV_VERSION
+from peeler import UV_VERSION_RANGE
 
-version_regex = r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?"
+version_regex = r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?"  # NOSONAR(S5843) # from docs: https://semver.org/
 
 
 def get_uv_bin_version(uv_bin: PathLike) -> Version | None:
@@ -26,7 +27,9 @@ def get_uv_bin_version(uv_bin: PathLike) -> Version | None:
 
     uv_bin = fspath(uv_bin)
 
-    result = run([uv_bin, "self", "version"], capture_output=True, text=True, check=True)
+    result = run(
+        [uv_bin, "self", "version"], capture_output=True, text=True, check=True
+    )
     output = result.stdout.strip()
     match = re.search(version_regex, output)
 
@@ -37,16 +40,16 @@ def get_uv_bin_version(uv_bin: PathLike) -> Version | None:
 
 
 @overload
-def find_uv_bin() -> str:
-    ...
+def find_uv_bin() -> str: ...
+
 
 @overload
-def find_uv_bin(raises: Literal[True]) -> str:
-    ...
+def find_uv_bin(raises: Literal[True]) -> str: ...
+
 
 @overload
-def find_uv_bin(raises: Literal[False]) -> str | None:
-    ...
+def find_uv_bin(raises: Literal[False]) -> str | None: ...
+
 
 def find_uv_bin(raises: bool = True) -> str | None:
     """Return the path to the uv bin.
@@ -54,16 +57,18 @@ def find_uv_bin(raises: bool = True) -> str | None:
     :raises ClickException: if the bin cannot be found.
     """
 
-    try:
+    spec = find_spec("uv")
+
+    if spec:
         from uv import _find_uv
 
         uv_bin: str | None = _find_uv.find_uv_bin()
-    except (ModuleNotFoundError, FileNotFoundError):
+    else:
         uv_bin = shutil.which("uv")
 
     if raises and uv_bin is None:
         raise ClickException(
-            f"""Cannot find uv bin
+            """Cannot find uv bin
 Install uv `https://astral.sh/blog/uv` or
 Install peeler with uv (eg: pip install peeler[uv])
 """
@@ -77,10 +82,10 @@ def has_uv() -> bool:
 
     :return: True if uv is found, False otherwise.
     """
-    
+
     return find_uv_bin(raises=False) is not None
-        
-        
+
+
 def get_uv_version() -> Version | None:
     """Return uv version."""
 
@@ -90,30 +95,25 @@ def get_uv_version() -> Version | None:
 def check_uv_version() -> None:
     """Check the current uv version is between 0.7.0 and current supported max uv version.
 
-    See .max-uv-version or pyproject.toml files.
+    See pyproject.toml file.
 
     :raises ClickException: if uv version cannot be determined or is lower than the minimum version.
     """
 
     uv_version = get_uv_bin_version(Path(find_uv_bin()))
 
-    try:
-        import uv
-    except (ModuleNotFoundError, FileNotFoundError):
-        from_pip = False
-    else:
-        from_pip = True
+    from_pip = find_spec("uv") is not None
 
     from peeler import __name__
 
-    body = f"To use {__name__} wheels feature with a pyproject.toml uv version must be between {MIN_UV_VERSION} and {MAX_UV_VERSION}"
+    body = f"To use {__name__} wheels feature with a pyproject.toml uv version must be between {UV_VERSION_RANGE.min} (inclusive) and {UV_VERSION_RANGE.max} (exclusive)"
 
     if from_pip:
         update_uv = """Install peeler with a supported uv version:
 
 pip install peeler[uv]"""
     else:
-        update_uv = f"""Use peeler with a supported uv version without changing your current uv installation:
+        update_uv = """Use peeler with a supported uv version without changing your current uv installation:
 
 uvx peeler[uv] [OPTIONS] COMMAND [ARGS]"""
 
@@ -125,7 +125,7 @@ uvx peeler[uv] [OPTIONS] COMMAND [ARGS]"""
 
 {update_uv}""")
 
-    if uv_version > MAX_UV_VERSION or uv_version < MIN_UV_VERSION:
+    if uv_version not in UV_VERSION_RANGE:
         header = f"uv version is {uv_version}"
 
         raise ClickException(f"""{header}

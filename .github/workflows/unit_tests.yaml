@@ -6,28 +6,13 @@ env:
   UV_SYSTEM_PYTHON: 1
 
 jobs:
-  setup_tests:
-    runs-on: ubuntu-latest
-    outputs:
-      max_uv_version: ${{steps.get_current_version.outputs.max_uv_version}}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Get current uv version from .max-uv-version
-        id: get_current_version
-        run: |
-          MAX_VERSION=$(cat .max-uv-version)
-          echo max supported uv version is $MAX_VERSION
-          echo "max_uv_version=$MAX_VERSION" >> $GITHUB_OUTPUT
-
   run_tests:
-    needs: setup_tests
     runs-on: ubuntu-latest
     strategy:
         matrix:
           uv-version:
             - 0.7.1
-            - ${{ needs.setup_tests.outputs.max_uv_version }}
+            - 0.9.17
 
           python-version:
             - 3.11
