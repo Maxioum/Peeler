@@ -10,7 +10,7 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
-    "Development Status :: 2 - Pre-Alpha"
+    "Development Status :: 4 - Beta"
 ]
 license = {file = "LICENSE"}
 authors = [
@@ -77,4 +77,3 @@ exclude = ["tests"]
 pythonpath = ["."]
 addopts = "-lsv"
 testpaths = ["tests"]
-
