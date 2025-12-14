@@ -2,7 +2,7 @@ name: Run unit tests on uv updates
 
 on:
   schedule:
-    - cron: "42 4 * * *"
+    - cron: "42 4 * * 1"
   workflow_dispatch:
     inputs:
       manual-version:
@@ -17,9 +17,7 @@ jobs:
   check-uv-version:
     runs-on: ubuntu-latest
     outputs:
-      current-version: ${{ steps.get-current-version.outputs.current-version }}
       latest-version: ${{ steps.get-latest-release.outputs.latest-version }}
-      new-version: ${{ steps.compare-versions.outputs.new-version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,38 +32,9 @@ jobs:
           fi
           echo "latest-version=$LATEST_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Retrieve current max supported uv version from file
-        id: get-current-version
-        run: |
-          CURRENT_VERSION=$(cat ${{ env.UV_VERSION_FILE }})
-          echo current max supported uv version is $CURRENT_VERSION
-          echo "current-version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Compare versions
-        id: compare-versions
-        run: |
-            set -e
-            CURRENT_VERSION="${{ steps.get-current-version.outputs.current-version }}"
-            LATEST_VERSION="${{ steps.get-latest-release.outputs.latest-version }}"
-
-            if [[ -z "$CURRENT_VERSION" || -z "$LATEST_VERSION" ]]; then
-              echo "Error: When comparing versions" >&2
-              echo "current-version: $CURRENT_VERSION" >&2
-              echo "latest-version: $LATEST_VERSION" >&2
-              exit 1
-            fi
-
-            if [[ "$CURRENT_VERSION" != "$LATEST_VERSION" ]]; then
-              echo "New uv version available: $LATEST_VERSION"
-              echo "new-version=$LATEST_VERSION" >> "$GITHUB_OUTPUT"
-            else
-              echo "uv version $LATEST_VERSION is already supported"
-              echo "new-version=" >> "$GITHUB_OUTPUT"
-            fi
 
   unit-tests:
     needs: check-uv-version
-    if: needs.check-uv-version.outputs.new-version != ''
     runs-on: ubuntu-latest
     outputs:
       tests-passed: ${{ steps.unit-tests.outputs.test-output == 'success' }}
@@ -75,7 +44,7 @@ jobs:
       fail-fast: false
       matrix:
         uv-version:
-          - ${{ needs.check-uv-version.outputs.new-version }}
+          - ${{ needs.check-uv-version.outputs.latest-version }}
 
         python-version:
           - "3.11"
@@ -100,7 +69,7 @@ jobs:
     if: needs.unit-tests.outputs.tests-passed == 'false'
     runs-on: ubuntu-latest
     env:
-      issue-title: "uv ${{ needs.check-uv-version.outputs.new-version }} causes tests failures"
+      issue-title: "uv ${{ needs.check-uv-version.outputs.latest-version }} causes tests failures"
 
     steps:
       - name: Download Test Results
