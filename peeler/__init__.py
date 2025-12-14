@@ -19,10 +19,15 @@ Run `peeler --help` for more info.
 
 from pathlib import Path
 
+from dep_logic.specifiers import RangeSpecifier
 from packaging.version import Version
 
 DATA_DIR = Path(__file__).parent / "data"
 
-MIN_UV_VERSION = Version("0.7.0")
+_MIN_UV_VERSION = Version("0.7.0")
 
-MAX_UV_VERSION = Version((Path(__file__).parent.parent / ".max-uv-version").read_text())
+_MAX_UV_VERSION = Version("1")
+
+UV_VERSION_RANGE = RangeSpecifier(
+    min=_MIN_UV_VERSION, include_min=True, max=_MAX_UV_VERSION, include_max=False
+)

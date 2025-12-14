@@ -12,7 +12,6 @@ on:
 
 env:
   UV_SYSTEM_PYTHON: 1
-  UV_VERSION_FILE: .max-uv-version
 
 jobs:
   check-uv-version:
@@ -101,7 +100,7 @@ jobs:
     if: needs.unit-tests.outputs.tests-passed == 'false'
     runs-on: ubuntu-latest
     env:
-      issue-title: "upgrading uv to ${{ needs.check-uv-version.outputs.new-version }} causes tests failures"
+      issue-title: "uv ${{ needs.check-uv-version.outputs.new-version }} causes tests failures"
 
     steps:
       - name: Download Test Results
@@ -116,69 +115,3 @@ jobs:
           content-filepath: pytest_output.txt
           labels: bug, dependency-update
           assignees: ${{github.repository_owner}}
-
-  create-pull-request:
-    needs: [check-uv-version, unit-tests]
-    if: needs.unit-tests.outputs.tests-passed == 'true'
-    runs-on: ubuntu-latest
-    env:
-      PR_TITLE: "Unit tests passed. Upgrading max supported uv version to"
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install new uv version
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: "${{ needs.check-uv-version.outputs.new-version }}"
-          enable-cache: true
-
-      - name: Update pyproject.toml with new max uv version
-        run: |
-          uvx --from=toml-cli toml set --toml-path=pyproject.toml project.optional-dependencies.uv[1] "uv <= ${{ needs.check-uv-version.outputs.new-version }}"
-
-      - name: Update .max-uv-version file
-        run: |
-          echo "${{ needs.check-uv-version.outputs.new-version }}" > ${{ env.UV_VERSION_FILE }}
-
-      - name: Update uv.lock
-        run: |
-          uv lock
-
-      - name: Check for existing PR
-        id: check-pr
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          EXISTING_PR=$(gh pr list --search "${{env.PR_TITLE}}" --state open --json number,title --jq '.[0]')
-          if [ ! -z "$EXISTING_PR" ]; then
-            echo "existing-pr=true" >> $GITHUB_OUTPUT
-            echo "pr-number=$(echo $EXISTING_PR | jq -r .number)" >> $GITHUB_OUTPUT
-          else
-            echo "existing-pr=false" >> $GITHUB_OUTPUT
-            echo "pr-number=" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Create Pull Request
-        if: steps.check-pr.outputs.existing-pr == 'false'
-        uses: peter-evans/create-pull-request@v6
-        with:
-          commit-message: "chore: update max uv version to ${{ needs.check-uv-version.outputs.new-version }}"
-          title: "${{env.PR_TITLE}} ${{ needs.check-uv-version.outputs.new-version }}."
-          body: "${{env.PR_TITLE}} ${{ needs.check-uv-version.outputs.new-version }}."
-          labels: dependencies
-          branch: update-max-uv-version-${{ needs.check-uv-version.outputs.new-version }}
-
-      - name: Update existing Pull Request
-        if: steps.check-pr.outputs.existing-pr == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh pr edit ${{ steps.check-pr.outputs.pr-number }} \
-            --title "${{env.PR_TITLE}} ${{ needs.check-uv-version.outputs.new-version }}." \
-            --body "${{env.PR_TITLE}} ${{ needs.check-uv-version.outputs.new-version }}." \
-            --add-label dependencies
-
-      - name: Minimize uv cache
-        if: always()
-        run: uv cache prune --ci

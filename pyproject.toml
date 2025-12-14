@@ -44,7 +44,7 @@ peeler = "peeler.cli:app"
 [project.optional-dependencies]
 uv = [
     "uv >= 0.7",
-    "uv <= 0.9.16"
+    "uv < 1"
 ]
 
 [tool.uv]
@@ -70,7 +70,7 @@ dev = [
 path = "version.txt"
 
 [tool.hatch.build]
-include = ["peeler", ".max-uv-version"]
+include = ["peeler"]
 exclude = ["tests"]
 
 [tool.pytest.ini_options]
