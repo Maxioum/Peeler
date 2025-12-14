@@ -2,7 +2,7 @@ name: Run unit tests on uv updates
 
 on:
   schedule:
-    - cron: "42 4 * * 1"
+    - cron: "42 4 * * *"
   workflow_dispatch:
     inputs:
       manual-version:
@@ -121,6 +121,8 @@ jobs:
     needs: [check-uv-version, unit-tests]
     if: needs.unit-tests.outputs.tests-passed == 'true'
     runs-on: ubuntu-latest
+    env:
+      PR_TITLE: "Unit tests passed. Upgrading max supported uv version to"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -143,14 +145,39 @@ jobs:
         run: |
           uv lock
 
-      - name: Create pull request
+      - name: Check for existing PR
+        id: check-pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          EXISTING_PR=$(gh pr list --search "${{env.PR_TITLE}}" --state open --json number,title --jq '.[0]')
+          if [ ! -z "$EXISTING_PR" ]; then
+            echo "existing-pr=true" >> $GITHUB_OUTPUT
+            echo "pr-number=$(echo $EXISTING_PR | jq -r .number)" >> $GITHUB_OUTPUT
+          else
+            echo "existing-pr=false" >> $GITHUB_OUTPUT
+            echo "pr-number=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        if: steps.check-pr.outputs.existing-pr == 'false'
         uses: peter-evans/create-pull-request@v6
         with:
           commit-message: "chore: update max uv version to ${{ needs.check-uv-version.outputs.new-version }}"
-          title: "Update max uv version to ${{ needs.check-uv-version.outputs.new-version }}"
-          body: "Unit tests passed. Upgrading max supported uv version to ${{ needs.check-uv-version.outputs.new-version }}."
+          title: "${{env.PR_TITLE}} ${{ needs.check-uv-version.outputs.new-version }}."
+          body: "${{env.PR_TITLE}} ${{ needs.check-uv-version.outputs.new-version }}."
           labels: dependencies
           branch: update-max-uv-version-${{ needs.check-uv-version.outputs.new-version }}
+
+      - name: Update existing Pull Request
+        if: steps.check-pr.outputs.existing-pr == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr edit ${{ steps.check-pr.outputs.pr-number }} \
+            --title "${{env.PR_TITLE}} ${{ needs.check-uv-version.outputs.new-version }}." \
+            --body "${{env.PR_TITLE}} ${{ needs.check-uv-version.outputs.new-version }}." \
+            --add-label dependencies
 
       - name: Minimize uv cache
         if: always()
