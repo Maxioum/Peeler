@@ -1,4 +1,4 @@
-# # SPDX-FileCopyrightText: 2025 Maxime Letellier <maxime.eliot.letellier@gmail.com>
+# # SPDX-FileCopyrightText: 2025-2026 Maxime Letellier <maxime.eliot.letellier@gmail.com>
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -8,10 +8,9 @@ from typing import List
 import typer
 from dep_logic.specifiers import parse_version_specifier
 from packaging.requirements import Requirement
-from tomlkit.items import Table
 
 from peeler.pyproject import _BLENDER_SUPPORTED_PYTHON_VERSION
-from peeler.pyproject.parser import DependencyGroups, PyprojectParser
+from peeler.pyproject.parser import PyprojectParser
 from peeler.utils import normalize_package_name
 
 

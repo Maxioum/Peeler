@@ -89,7 +89,18 @@ def test_validator_requires_python_empty(validator: PyprojectValidator) -> None:
 
 @pytest.mark.parametrize(
     "validator_requires_python",
-    [">=3.6", "==3.11.*", ">=3.11.9,<3.13", "~=3.11.2", "==3.11.7"],
+    [
+        ">=3.6",
+        "==3.11.*",
+        ">=3.11.9,<3.13",
+        "~=3.11.2",
+        "==3.11.7",
+        "~=3.12.0",
+        ">=3.11.5,<3.14",
+        ">=3.13.5,<3.14.0",
+        "~=3.13.0",
+        ">=3.12",
+    ],
     indirect=True,
 )
 def test_validator_requires_python(
@@ -106,8 +117,8 @@ def test_validator_requires_python(
     [
         "<=3.5",
         "<3.11",
-        ">=3.12.0,<3.13",
-        "~=3.12.0",
+        ">=3.14.0,<3.15",
+        "~=3.14.0",
         "~=3.7.0",
     ],
     indirect=True,

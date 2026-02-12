@@ -1,4 +1,4 @@
-# # SPDX-FileCopyrightText: 2025 Maxime Letellier <maxime.eliot.letellier@gmail.com>
+# # SPDX-FileCopyrightText: 2025-2026 Maxime Letellier <maxime.eliot.letellier@gmail.com>
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -6,9 +6,8 @@ from pathlib import Path
 from typing import Any, Dict
 
 from click import format_filename
-from dep_logic.specifiers import RangeSpecifier, parse_version_specifier
+from dep_logic.specifiers import parse_version_specifier
 from fastjsonschema import JsonSchemaValueException
-from packaging.version import Version
 from tomlkit import TOMLDocument
 from validate_pyproject.api import Validator as _Validator
 from validate_pyproject.plugins import PluginWrapper
