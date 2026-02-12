@@ -1,4 +1,4 @@
-# # SPDX-FileCopyrightText: 2025 Maxime Letellier <maxime.eliot.letellier@gmail.com>
+# # SPDX-FileCopyrightText: 2025-2026 Maxime Letellier <maxime.eliot.letellier@gmail.com>
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -13,7 +13,7 @@ from typing import Dict, Iterable, List, Optional, Protocol, Set, Tuple
 import typer
 from click import ClickException
 from typer import progressbar
-from wheel_filename import ParsedWheelFilename, parse_wheel_filename
+from wheel_filename import WheelFilename
 
 from peeler.utils import (
     normalize_package_name,
@@ -23,11 +23,23 @@ from peeler.utils import (
 from peeler.uv_utils import find_uv_bin, has_uv
 
 
+def parse_wheel_filename(url: str) -> WheelFilename:
+    """Parse a wheel filename from a given URL.
+
+    Added as a wrapper for retropcompatibility.
+
+    :param url: The URL containing the wheel filename to parse.
+    return: A WheelFilename object representing the parsed wheel information.
+    """
+
+    return WheelFilename.parse(url)
+
+
 def _parse_implementation_and_python_version(python_tag: str) -> Tuple[str, str]:
     return python_tag[:2], python_tag[2:]
 
 
-def _wheel_path(destination_directory: Path, wheel_info: ParsedWheelFilename) -> Path:
+def _wheel_path(destination_directory: Path, wheel_info: WheelFilename) -> Path:
     return destination_directory / str(wheel_info)
 
 

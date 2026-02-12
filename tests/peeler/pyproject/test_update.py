@@ -3,7 +3,6 @@ from typing import List
 from dep_logic.specifiers import RangeSpecifier, parse_version_specifier
 from packaging.version import Version
 from pytest import mark
-from tomlkit.items import Table
 
 from peeler.pyproject import _BLENDER_SUPPORTED_PYTHON_VERSION
 from peeler.pyproject.parser import PyprojectParser
@@ -13,7 +12,9 @@ from peeler.pyproject.update import (
     update_requires_python,
 )
 
-_unsupported_python_versions_sup = RangeSpecifier(min=Version("3.12"), include_min=True)
+_unsupported_python_versions_sup = RangeSpecifier(
+    min=_BLENDER_SUPPORTED_PYTHON_VERSION.max, include_min=True
+)
 _unsupported_python_versions_inf = RangeSpecifier(max=Version("3.10"), include_max=True)
 
 
