@@ -1,4 +1,4 @@
-# # SPDX-FileCopyrightText: 2025 Maxime Letellier <maxime.eliot.letellier@gmail.com>
+# # SPDX-FileCopyrightText: 2025-2026 Maxime Letellier <maxime.eliot.letellier@gmail.com>
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -150,6 +150,9 @@ def _get_supported_platforms(pyproject_path: Path) -> List[str] | None:
         if not (
             manifest_table := PyprojectParser.from_file(pyproject_file).manifest_table
         ):
+            return None
+
+        if not "platforms" in manifest_table:
             return None
 
     return manifest_table["platforms"]
