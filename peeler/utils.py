@@ -1,4 +1,4 @@
-# # SPDX-FileCopyrightText: 2025 Maxime Letellier <maxime.eliot.letellier@gmail.com>
+# # SPDX-FileCopyrightText: 2025-2026 Maxime Letellier <maxime.eliot.letellier@gmail.com>
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -129,7 +129,7 @@ see https://docs.blender.org/manual/en/latest/advanced/extensions/getting_starte
 import re
 
 PLATFORM_REGEX = re.compile(
-    r"^(?P<platform>macosx|manylinux|musllinux|win|linux|any)"
+    r"^(?P<platform>macosx|manylinux|musllinux|win|linux|android|ios|any)"
     r"(?:[_\-]?(?P<version>\d+(?:[_\-]\d+)*))?"  # version ex: 11_0, 2014, 2_17
     r"(?:[_\-](?P<arch>[A-Za-z0-9_]+))?$"  # arch ex: x86_64, arm64, amd64
 )
@@ -149,22 +149,24 @@ def parse_package_platform_tag(
     if platform_tag == "win32":  # special case
         return ("win", None, "32")
 
-    def _raise() -> NoReturn:
-        raise ClickException(f"""Invalid platform tag: `{platform_tag}` .""")
+    def _raise(msg: str) -> NoReturn:
+        raise ClickException(f"""Invalid platform tag: `{platform_tag}` ({msg}).""")
 
     if (match_ := PLATFORM_REGEX.match(platform_tag)) is None:
-        _raise()
+        _raise("no regex match")
     if len(groups_ := match_.groups(default=None)) != 3:
-        _raise()
+        _raise(
+            f"unexpected number of groups in regex match (should be 3, got {len(groups_)})"
+        )
 
     platform, version, arch = groups_
 
     if platform == "any":
         if version or arch:
-            _raise()
+            _raise('"any" platform should not have version or arch')
         return platform, version, arch
 
     if not platform or not arch:
-        _raise()
+        _raise("platform and arch are required for non-any platform")
 
     return platform, version, arch
