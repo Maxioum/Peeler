@@ -88,6 +88,12 @@ def test_normalize_blender_supported_platform_raises(platform: str) -> None:
             # --- edge / uncommon formats ---
             ("manylinux_2_17-x86_64", ("manylinux", "2_17", "x86_64")),
             ("macosx-10_9-x86_64", ("macosx", "10_9", "x86_64")),
+            ("android_21_arm64_v8a", ("android", "21", "arm64_v8a")),
+            ("ios_13_0_arm64", ("ios", "13_0", "arm64")),
+            (
+                "ios_13_0_arm64_iphonesimulator",
+                ("ios", "13_0", "arm64_iphonesimulator"),
+            ),
         ]
     ),
 )
