@@ -1,4 +1,4 @@
-# # SPDX-FileCopyrightText: 2025 Maxime Letellier <maxime.eliot.letellier@gmail.com>
+# # SPDX-FileCopyrightText: 2025-2026 Maxime Letellier <maxime.eliot.letellier@gmail.com>
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -10,7 +10,7 @@ from typer import Argument, Option, Typer
 app = Typer()
 
 
-@app.command(help=f"Display the current installed version.", hidden=True)
+@app.command(help="Display the current installed version.", hidden=True)
 def version() -> None:
     """Call the version command."""
 
@@ -20,7 +20,7 @@ def version() -> None:
 
 
 @app.command(
-    help=f"Create or update a blender_manifest.toml file from a pyproject.toml file.",
+    help="Create or update a blender_manifest.toml file from a pyproject.toml file.",
 )
 def manifest(
     pyproject: Annotated[Path, Argument()],
@@ -87,6 +87,13 @@ def wheels(
             show_default=False,
         ),
     ] = None,
+    include_free_threaded_wheels: Annotated[
+        bool,
+        Option(
+            help="Whether to include free threaded wheels. See https://docs.blender.org/api/current/info_gotchas_threading.html .",
+            show_default=True,
+        ),
+    ] = False,
 ) -> None:
     """Download wheels and write their paths to the Blender manifest."""
 
@@ -99,6 +106,7 @@ def wheels(
         exclude_package,
         exclude_dependency,
         exclude_dependency_groups,
+        include_free_threaded_wheels,
     )
 
 
