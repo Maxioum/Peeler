@@ -4,6 +4,7 @@ import pytest
 
 from peeler.wheels.download import (
     HasValidImplementation,
+    IsNotFreeThreaded,
     PackageIsNotExcluded,
     PlatformIsNotExcluded,
     _parse_implementation_and_python_version,
@@ -300,3 +301,106 @@ def test_PlatformIsNotExcluded_platform_mixed(
     supported_platform: List[str], urls: List[str], expected_urls: List[str]
 ) -> None:
     assert PlatformIsNotExcluded(supported_platform)(urls) == expected_urls
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://files.pythonhosted.org/packages/.../packagename-2.3.3-cp313-cp313t-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "https://files.pythonhosted.org/packages/.../packagename-2.3.3-cp313-cp313t-win_amd64.whl",
+        "https://files.pythonhosted.org/packages/.../packagename_core-2.41.1-cp313-cp313t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "https://files.pythonhosted.org/packages/.../packagename_core-2.41.1-cp313-cp313t-win_amd64.whl",
+        "https://files.pythonhosted.org/packages/.../packagename-1.17.1-cp313-cp313t-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "https://files.pythonhosted.org/packages/.../packagename-1.17.1-cp313-cp313t-win_amd64.whl",
+        "https://files.pythonhosted.org/packages/.../packagename-2.0.48-cp313-cp313t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+        "https://files.pythonhosted.org/packages/.../packagename-2.0.48-cp313-cp313t-win_amd64.whl",
+    ],
+)
+def test_IsNotFreeThreaded_filtered(url: str) -> None:
+    assert not IsNotFreeThreaded()([url])
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://files.pythonhosted.org/packages/.../packagename-2.3.3-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "https://files.pythonhosted.org/packages/.../packagename-2.3.3-cp313-cp313-win_amd64.whl",
+        "https://files.pythonhosted.org/packages/.../packagename-2.12.0-py3-none-any.whl",
+        "https://files.pythonhosted.org/packages/.../packagename_core-2.41.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "https://files.pythonhosted.org/packages/.../packagename_core-2.41.1-cp313-cp313-win_amd64.whl",
+        "https://files.pythonhosted.org/packages/.../packagename-1.17.1-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "https://files.pythonhosted.org/packages/.../packagename-1.17.1-cp313-cp313-win_amd64.whl",
+        "https://files.pythonhosted.org/packages/.../packagename-2.0.48-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+        "https://files.pythonhosted.org/packages/.../packagename-2.0.48-cp313-cp313-win_amd64.whl",
+        "https://files.pythonhosted.org/packages/.../packagename-2.0.48-py3-none-any.whl",
+    ],
+)
+def test_IsNotFreeThreaded(url: str) -> None:
+    assert IsNotFreeThreaded()([url])
+
+
+@pytest.mark.parametrize(
+    ("urls", "expected_urls"),
+    [
+        [
+            [
+                "https://files.pythonhosted.org/packages/.../wheels/annotated_doc-0.0.4-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/annotated_types-0.7.0-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/anyio-4.11.0-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/fastapi-0.135.1-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/greenlet-3.2.4-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/greenlet-3.2.4-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/greenlet-3.2.4-cp313-cp313-win_amd64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/idna-3.10-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/numpy-2.3.3-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/numpy-2.3.3-cp313-cp313-win_amd64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/numpy-2.3.3-cp313-cp313t-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/numpy-2.3.3-cp313-cp313t-win_amd64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/pydantic-2.12.0-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/pydantic_core-2.41.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/pydantic_core-2.41.1-cp313-cp313-win_amd64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/pydantic_core-2.41.1-cp313-cp313t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/pydantic_core-2.41.1-cp313-cp313t-win_amd64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/scipy-1.17.1-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/scipy-1.17.1-cp313-cp313-win_amd64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/scipy-1.17.1-cp313-cp313t-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/scipy-1.17.1-cp313-cp313t-win_amd64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/sniffio-1.3.1-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/sqlalchemy-2.0.48-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/sqlalchemy-2.0.48-cp313-cp313-win_amd64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/sqlalchemy-2.0.48-cp313-cp313t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/sqlalchemy-2.0.48-cp313-cp313t-win_amd64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/sqlalchemy-2.0.48-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/starlette-0.48.0-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/typing_extensions-4.15.0-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/typing_inspection-0.4.2-py3-none-any.whl",
+            ],
+            [
+                "https://files.pythonhosted.org/packages/.../wheels/annotated_doc-0.0.4-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/annotated_types-0.7.0-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/anyio-4.11.0-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/fastapi-0.135.1-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/greenlet-3.2.4-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/greenlet-3.2.4-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/greenlet-3.2.4-cp313-cp313-win_amd64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/idna-3.10-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/numpy-2.3.3-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/numpy-2.3.3-cp313-cp313-win_amd64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/pydantic-2.12.0-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/pydantic_core-2.41.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/pydantic_core-2.41.1-cp313-cp313-win_amd64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/scipy-1.17.1-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/scipy-1.17.1-cp313-cp313-win_amd64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/sniffio-1.3.1-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/sqlalchemy-2.0.48-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/sqlalchemy-2.0.48-cp313-cp313-win_amd64.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/sqlalchemy-2.0.48-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/starlette-0.48.0-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/typing_extensions-4.15.0-py3-none-any.whl",
+                "https://files.pythonhosted.org/packages/.../wheels/typing_inspection-0.4.2-py3-none-any.whl",
+            ],
+        ]
+    ],
+)
+def test_IsNotFreeThreaded_mixed(urls: List[str], expected_urls: List[str]) -> None:
+    assert IsNotFreeThreaded()(urls) == expected_urls

@@ -165,12 +165,14 @@ def wheels_command(
     excluded_packages: Optional[List[str]] = None,
     excluded_dependency: Optional[List[str]] = None,
     excluded_dependency_group: Optional[List[str]] = None,
+    include_free_threaded_wheels: bool = False,
 ) -> None:
     """Download wheel from pyproject dependency and write their paths to the blender manifest.
 
     :param file: The pyproject / uv.lock / pylock file or directory.
-    :param blender_manifest_file: the blender manifest file
+    :param blender_manifest_file: the blender manifest file.
     :param wheels_directory: the directory to download wheels into.
+    :param include_free_threaded_wheels: whether to include free threaded wheels
     """
 
     blender_manifest_file = _resolve_blender_manifest_file(
@@ -195,6 +197,7 @@ def wheels_command(
         urls,
         excluded_packages=excluded_packages,
         supported_platforms=supported_platform,
+        include_free_threaded_wheels=include_free_threaded_wheels,
     )
 
     write_wheels_path(blender_manifest_file, wheels_paths)

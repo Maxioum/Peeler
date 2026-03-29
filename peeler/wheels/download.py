@@ -263,6 +263,43 @@ class PlatformIsNotExcluded(UrlsFilter):
         return urls
 
 
+class IsNotFreeThreaded(UrlsFilter):
+    """Filter out urls for free threaded wheels.
+
+    Free threaded wheels are not compatible with blender and can cause issues when installed.
+    See https://docs.blender.org/api/current/info_gotchas_threading.html .
+
+    :param package_name: Optional name of the package, used in warning messages.
+    """
+
+    def __init__(self, package_name: str | None = None) -> None:
+        self.package_name = package_name
+
+    def _is_not_free_threaded(self, url: str) -> bool:
+        """See https://peps.python.org/pep-0803/ ."""
+
+        wheel_info = parse_wheel_filename(url)
+
+        return not any(tag.endswith("t") for tag in wheel_info.abi_tags)
+
+    def __call__(self, urls: Iterable[str]) -> List[str]:
+        """Return URLs that are not free threaded.
+
+        :param urls: List of wheel URLs to filter.
+        :return: List of URLs that are not free threaded.
+        """
+        if not urls:
+            return []
+
+        urls = list(filter(self._is_not_free_threaded, urls))
+
+        if not urls and self.package_name:
+            msg = f"No suitable wheel found for {self.package_name} (free threaded wheels are not compatible with Blender), not downloading."
+            typer.echo(f"Warning: {msg}")
+
+        return urls
+
+
 class AbstractWheelsDownloader(ABC):
     """
     Abstract base class defining the interface for wheel downloaders.
@@ -390,13 +427,15 @@ def download_wheels(
     *,
     excluded_packages: Optional[List[str]] = None,
     supported_platforms: Optional[List[str]] = None,
+    include_free_threaded_wheels: bool = False,
 ) -> List[Path]:
     """Download the wheels from urls with pip download into wheels_directory.
 
     :param wheels_directory: The directory to download wheels into
     :param urls: A Dict with package name as key and a list of package urls as values.
-    :param excluded_packages: packages excluded from being downloaded
-    :param supported_platforms: only download wheels for theses platforms
+    :param excluded_packages: packages excluded from being downloaded.
+    :param supported_platforms: only download wheels for theses platforms.
+    :param include_free_threaded_wheels: whether to include free threaded wheels.
     :return: the list of the downloaded wheels path
     """
     wheels_directory.mkdir(parents=True, exist_ok=True)
@@ -417,6 +456,9 @@ def download_wheels(
 
         if supported_platforms:
             filters.add(PlatformIsNotExcluded(supported_platforms))
+
+        if not include_free_threaded_wheels:
+            filters.add(IsNotFreeThreaded(package_name))
 
         package_urls = reduce(lambda acc, filter_: filter_(acc), filters, package_urls)
 
