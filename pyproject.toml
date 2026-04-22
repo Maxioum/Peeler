@@ -25,6 +25,7 @@ dependencies = [
     "jsonschema>=4.23.0",
     "packaging>=24.2",
     "pyproject-metadata>=0.9.0",
+    "pytest>=9.0.3",
     "rich>=13.9.4",
     "tomlkit>=0.13.2",
     "typer>=0.15.1",
@@ -44,7 +45,7 @@ peeler = "peeler.cli:app"
 
 [project.optional-dependencies]
 uv = [
-    "uv >= 0.7",
+    "uv >= 0.11.6",
     "uv < 1"
 ]
 
