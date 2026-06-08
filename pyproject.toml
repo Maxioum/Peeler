@@ -45,7 +45,7 @@ peeler = "peeler.cli:app"
 
 [project.optional-dependencies]
 uv = [
-    "uv < 1",
+    "uv >= 0.11.15",
     "uv < 1"
 ]
 
