@@ -21,7 +21,7 @@ def test_check_uv_version() -> None:
 
 @pytest.mark.parametrize(
     "run_stdout",
-    ["uv 0.7.2 (481d05d8d 2025-04-30)"],
+    ["uv 0.11.19 (7b2cff1c3 2026-06-03 x86_64-pc-windows-msvc)"],
 )
 @mock.patch("peeler.uv_utils.run")
 def test_check_uv_version_valid(mock_run: Mock, run_stdout: str) -> None:
@@ -40,6 +40,6 @@ def test_check_uv_version_raises(mock_run: Mock, run_stdout: str) -> None:
     mock_stdout = MagicMock()
     mock_stdout.configure_mock(**{"stdout": run_stdout})
     mock_run.return_value = mock_stdout
-    
+
     with pytest.raises(ClickException):
         check_uv_version()
