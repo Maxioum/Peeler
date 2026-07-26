@@ -14,6 +14,12 @@ from peeler.pyproject.validator import PyprojectValidator
 TEST_DATA_DIR = Path(__file__).parent / "data"
 PYPROJECT_NO_PEELER_TABLE = TEST_DATA_DIR / "pyproject_no_peeler_table.toml"
 PYPROJECT_MINIMAL = TEST_DATA_DIR / "pyproject_minimal.toml"
+PYPROJECT_NO_MANIFEST_TABLE = TEST_DATA_DIR / "pyproject_no_manifest_table.toml"
+
+
+@fixture
+def pyproject_path(request: FixtureRequest) -> TOMLDocument:
+    return TEST_DATA_DIR / Path(request.param)
 
 
 @fixture
