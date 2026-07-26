@@ -22,6 +22,7 @@ keywords = ["blender", "add-on"]
 version = "0.0.1"
 
 dependencies = [
+    "click>=8.4.2",
     "dep-logic>=0.4.11",
     "jsonschema>=4.23.0",
     "packaging>=24.2",
