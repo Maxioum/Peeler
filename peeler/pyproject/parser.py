@@ -1,4 +1,4 @@
-# # SPDX-FileCopyrightText: 2025 Maxime Letellier <maxime.eliot.letellier@gmail.com>
+# # SPDX-FileCopyrightText: 2025-2026 Maxime Letellier <maxime.eliot.letellier@gmail.com>
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -8,6 +8,8 @@ from typing import Dict, List, Self
 from tomlkit import TOMLDocument
 from tomlkit.items import Table
 from tomlkit.toml_file import TOMLFile
+
+from peeler.utils import find_pyproject_file
 
 DependencyGroups = Dict[str, List[str | Dict[str, str]]]
 
@@ -48,6 +50,7 @@ class PyprojectParser:
         """
         if not hasattr(self, "_peeler_table"):
             self._peeler_table = self._document.get("tool", {}).get("peeler")
+
         return self._peeler_table
 
     @property
@@ -58,7 +61,9 @@ class PyprojectParser:
         """
         if not hasattr(self, "_settings_table"):
             _ = self.manifest_table
-            self._settings_table = self.peeler_table.remove("manifest")
+            self._settings_table = (
+                self.peeler_table.remove("manifest") if self.peeler_table else None
+            )
         return self._settings_table
 
     @property
@@ -68,7 +73,9 @@ class PyprojectParser:
         :return: The `manifest` table.
         """
         if not hasattr(self, "_manifest_table"):
-            self._manifest_table = self.peeler_table.get("manifest")
+            self._manifest_table = (
+                self.peeler_table.get("manifest") if self.peeler_table else None
+            )
         return self._manifest_table
 
     @property
@@ -91,3 +98,32 @@ class PyprojectParser:
         :param dependency_groups: The `dependency-groups` table.
         """
         self._document["dependency-groups"] = dependency_groups
+
+
+def get_supported_platforms(
+    pyproject_path: Path, allow_non_default_name: bool = False
+) -> List[str] | None:
+    """Get the platforms from the pyproject manifest table.
+
+    :param pyproject_path: The path to the pyproject file or directory.
+    :param allow_non_default_name: Whether to allow non-default pyproject file names.
+    :return: The list of platforms or None if not found.
+    """
+    if not (
+        pyproject_file := find_pyproject_file(
+            pyproject_path, allow_non_default_name=allow_non_default_name
+        )
+    ):
+        return None
+
+    if not (
+        manifest_table := PyprojectParser(
+            TOMLFile(pyproject_file).read()
+        ).manifest_table
+    ):
+        return None
+
+    if not "platforms" in manifest_table:
+        return None
+
+    return manifest_table["platforms"]

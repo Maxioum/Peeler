@@ -2,7 +2,6 @@
 #
 # # SPDX-License-Identifier: GPL-3.0-or-later
 
-from contextlib import suppress
 from pathlib import Path
 from typing import List, Optional
 
@@ -11,8 +10,7 @@ from click import format_filename
 from click.exceptions import ClickException
 from tomlkit.toml_file import TOMLFile
 
-from peeler.pyproject.parser import PyprojectParser
-from peeler.utils import find_pyproject_file
+from peeler.pyproject.parser import get_supported_platforms
 from peeler.wheels.download import download_wheels
 from peeler.wheels.lock import UrlFetcherCreator
 
@@ -142,22 +140,6 @@ def write_wheels_path(blender_manifest_path: Path, wheels_paths: List[Path]) -> 
     file.write(doc)
 
 
-def _get_supported_platforms(pyproject_path: Path) -> List[str] | None:
-    with suppress(ClickException):
-        if not (pyproject_file := find_pyproject_file(pyproject_path)):
-            return None
-
-        if not (
-            manifest_table := PyprojectParser.from_file(pyproject_file).manifest_table
-        ):
-            return None
-
-        if not "platforms" in manifest_table:
-            return None
-
-    return manifest_table["platforms"]
-
-
 def wheels_command(
     path: Path,
     blender_manifest_file: Path,
@@ -190,7 +172,7 @@ def wheels_command(
 
     urls = strategy.get_urls()
 
-    supported_platform = _get_supported_platforms(path)
+    supported_platform = get_supported_platforms(path, allow_non_default_name=True)
 
     wheels_paths = download_wheels(
         wheels_directory,
