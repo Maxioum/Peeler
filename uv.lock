@@ -274,7 +274,7 @@ requires-dist = [
     { name = "tomlkit", specifier = ">=0.13.2" },
     { name = "typer", specifier = ">=0.15.1" },
     { name = "uv", marker = "extra == 'uv'", specifier = "<1" },
-    { name = "uv", marker = "extra == 'uv'", specifier = ">=0.11.15" },
+    { name = "uv", marker = "extra == 'uv'", specifier = ">=0.13.4" },
     { name = "validate-pyproject", specifier = ">=0.23" },
     { name = "wheel-filename", specifier = ">=2.1.0" },
 ]
